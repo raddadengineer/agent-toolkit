@@ -1,0 +1,32 @@
+{
+  "safety-guard": {
+    "enabled": true,
+    "PreToolUse": [
+      {
+        "matcher": "run_command",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 scripts/guard_command.py",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  },
+  "auto-formatter": {
+    "enabled": true,
+    "PostToolUse": [
+      {
+        "matcher": "write_to_file|replace_file_content",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 scripts/auto_format.py",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

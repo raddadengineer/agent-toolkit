@@ -67,6 +67,15 @@ Harness these specialized agents via `invoke_subagent`:
 5. **`context_optimizer` (Token Optimization & AST Skeletons)**:
    * **Mandate**: Profiles codebase token footprints, extracts AST/interface skeletons, and builds compressed repo maps under strict budgets.
    * **Protocol**: Invoke when navigating large services, multi-file codebases, or when context headroom is low. Offload whole-repo skeletonization so raw AST dumps remain isolated in the subagent.
+6. **`debugger` (Root-Cause Investigation & Git Bisect)**:
+   * **Mandate**: Generates minimal reproduction harnesses (`repro.sh`), analyzes stack traces, and runs automated `git bisect`.
+   * **Protocol**: Invoke whenever a regression or flake occurs. Mandate reproduction (exit `1`) before attempting code edits.
+7. **`security_auditor` (AppSec & SAST Auditing)**:
+   * **Mandate**: Scans for OWASP Top 10 injection vectors, hardcoded credentials, and CVE dependency risks.
+   * **Protocol**: Invoke before merging external integrations, auth workflows, or new dependencies.
+8. **`database_engineer` (Zero-Downtime Schema Evolution)**:
+   * **Mandate**: Validates migration reversibility (rollback proof) and table-locking anti-patterns.
+   * **Protocol**: Invoke whenever modifying DDL, migrations, or database queries.
 
 ### C. Dynamic Expert Synthesis (`define_subagent`)
 When a task demands niche domain expertise not covered by standard agents (e.g., SQLite migration specialist, cryptographic key rotation auditor, WebGL shader debugger):

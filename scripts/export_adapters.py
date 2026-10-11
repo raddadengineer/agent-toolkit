@@ -65,6 +65,15 @@ class AdapterExporter:
         self.compression_standards = read_file_safe(
             toolkit_dir / "agents" / "context_optimizer" / "rules" / "compression-standards.md"
         )
+        self.debug_standards = read_file_safe(
+            toolkit_dir / "agents" / "debugger" / "rules" / "debugging-standards.md"
+        )
+        self.sec_standards = read_file_safe(
+            toolkit_dir / "agents" / "security_auditor" / "rules" / "security-standards.md"
+        )
+        self.db_standards = read_file_safe(
+            toolkit_dir / "agents" / "database_engineer" / "rules" / "database-standards.md"
+        )
 
     # --------------------------------------------------------------------------
     # 1. Claude Code
@@ -149,6 +158,45 @@ Adopt the Universal Systems Architect persona (read-only design):
 2. Evaluate design trade-offs, performance budgets, and concurrency constraints.
 3. Formulate clear interface contracts, schema models, and migration paths.
 4. Produce Architectural Decision Records (ADRs) and step-by-step implementation roadmaps.
+""",
+            "debugger.md": """---
+description: Root-cause debugging, minimal reproduction scripts (repro.sh), and git bisect
+---
+
+Execute the Universal Root-Cause Debugger procedure:
+1. Analyze and deobfuscate stack traces using `python3 scripts/bisect_debugger.py --analyze-trace <log>`.
+2. Generate a minimal reproduction script using `python3 scripts/bisect_debugger.py --repro "<cmd>" --output repro.sh`.
+3. If investigating a regression, run automated git bisect using `python3 scripts/bisect_debugger.py --bisect --test "<cmd>" --good <tag> --bad HEAD`.
+4. Apply the surgical fix and verify Red-Green proof (exit 0).
+""",
+            "security-audit.md": """---
+description: SAST security scan, secret leak prevention, and dependency vulnerability audit
+---
+
+Execute the Universal Security Auditor procedure:
+1. Run `python3 scripts/audit_security.py --check` across the repository.
+2. Audit for OWASP Top 10 injection vectors (SQL, command execution, eval).
+3. Verify zero hardcoded secrets or exposed private keys.
+4. Report prioritized findings (CRITICAL / HIGH / MEDIUM).
+""",
+            "db-migrate.md": """---
+description: Database migration safety, zero-downtime checks, and rollback reversibility audit
+---
+
+Execute the Universal Database Migration Safety procedure:
+1. Run `python3 scripts/verify_migrations.py --check` across all migration directories.
+2. Verify all migrations have valid downgrade/rollback procedures.
+3. Audit for table-locking anti-patterns (ADD COLUMN NOT NULL without default, non-concurrent indexes).
+4. Verify query plans using EXPLAIN ANALYZE for hot paths.
+""",
+            "doc-sync.md": """---
+description: Documentation and schema drift sentinel to catch outdated docs and broken links
+---
+
+Execute the Universal Documentation Drift Sentinel procedure:
+1. Run `python3 scripts/check_doc_drift.py --check`.
+2. Verify all agents, skills, and tools on disk are accurately documented.
+3. Fix any broken internal markdown references or missing descriptions.
 """,
         }
 
@@ -261,6 +309,52 @@ When designing system boundaries, schemas, or technical proposals:
 
 {self.arch_standards.strip()}
 """,
+            "debugger.mdc": f"""---
+description: Universal Root-Cause Debugging & Git Bisect Standards
+globs: *
+alwaysApply: false
+---
+
+# Debugging Standards
+
+When investigating bugs, failures, or regressions:
+
+{self.debug_standards.strip()}
+""",
+            "security-auditor.mdc": f"""---
+description: Universal Application Security & SAST Auditing Standards
+globs: *
+alwaysApply: false
+---
+
+# Security Auditing Standards
+
+When auditing code, dependencies, or permissions:
+
+{self.sec_standards.strip()}
+""",
+            "database-engineer.mdc": f"""---
+description: Universal Database Migration Safety & Zero-Downtime Standards
+globs: *
+alwaysApply: false
+---
+
+# Database Migration Standards
+
+When modifying database schemas, DDL, or migrations:
+
+{self.db_standards.strip()}
+""",
+            "doc-sync.mdc": """---
+description: Documentation & Schema Drift Sentinel
+globs: *
+alwaysApply: false
+---
+
+# Documentation Sync Standards
+
+Ensure all agents, skills, and commands are accurately documented without broken internal references.
+""",
         }
 
         for filename, content in rules.items():
@@ -350,6 +444,34 @@ description: Formulate system architecture plans, schemas, interface contracts, 
 
 Act as a principal systems architect. Analyze module boundaries, design interface contracts, document trade-offs in an ADR, and plan step-by-step implementation.
 """,
+            "debugger.prompt.md": """---
+name: debugger
+description: Root-cause debugging, minimal reproduction scripts, and automated git bisect
+---
+
+Act as a root-cause debugging specialist. Analyze error traces, construct a minimal reproduction harness (repro.sh), and isolate regressions.
+""",
+            "security-audit.prompt.md": """---
+name: security-audit
+description: Audit source code for SAST vulnerabilities and credential exposures
+---
+
+Act as an application security auditor. Scan source code and dependencies for injection vectors, secret exposures, and CVE vulnerabilities.
+""",
+            "db-migrate.prompt.md": """---
+name: db-migrate
+description: Audit database migrations for reversibility and zero-downtime safety
+---
+
+Act as a database reliability engineer. Validate migration rollback safety, detect table-locking anti-patterns, and verify query plans.
+""",
+            "doc-sync.prompt.md": """---
+name: doc-sync
+description: Verify documentation consistency and detect broken internal links
+---
+
+Scan documentation for drift against codebase reality and verify that all internal markdown references resolve correctly.
+""",
         }
 
         for filename, content in prompts.items():
@@ -434,6 +556,45 @@ Act as a principal systems architect. Analyze module boundaries, design interfac
                     "customInstructions": (
                         "Profile token footprints and skeletonize source files (85-95% token savings). "
                         "Never dump raw implementation files when AST signatures suffice."
+                    ),
+                },
+                {
+                    "slug": "debugger",
+                    "name": "Root-Cause Debugger",
+                    "roleDefinition": (
+                        "Root-cause investigation and debugging specialist authoring minimal reproduction harnesses "
+                        "(repro.sh) and isolating regressions via automated git bisection."
+                    ),
+                    "groups": ["read", "edit", "command"],
+                    "customInstructions": (
+                        "Reproduction precedes modification: never edit code without a failing repro. "
+                        "Enforce deterministic Red-Green verification."
+                    ),
+                },
+                {
+                    "slug": "security-auditor",
+                    "name": "Security Auditor",
+                    "roleDefinition": (
+                        "Principal AppSec auditor scanning source code and dependencies for SAST injection vectors, "
+                        "hardcoded secrets, and supply chain vulnerabilities."
+                    ),
+                    "groups": ["read", "command"],
+                    "customInstructions": (
+                        "Read-only posture. Hard block on critical injection vectors or leaked credentials. "
+                        "Deliver actionable, parameterized remediation snippets."
+                    ),
+                },
+                {
+                    "slug": "database-engineer",
+                    "name": "Database Engineer",
+                    "roleDefinition": (
+                        "Principal database reliability engineer verifying migration rollback reversibility, "
+                        "preventing table-locking hazards, and optimizing query plans."
+                    ),
+                    "groups": ["read", "edit", "command"],
+                    "customInstructions": (
+                        "Every migration must have a tested downgrade routine. Never add NOT NULL columns without default. "
+                        "Ensure indexes are built concurrently."
                     ),
                 },
             ]
@@ -521,6 +682,30 @@ Act as a principal systems architect. Analyze module boundaries, design interfac
                     else:
                         shutil.copytree(a, dest)
                     created.append(f".agents/agents/{a.name}")
+
+        # Link/copy hooks.json
+        hooks_src = self.toolkit_dir / "hooks" / "hooks.json"
+        if hooks_src.exists():
+            dest_hooks = target_agents_dir / "hooks.json"
+            if dest_hooks.exists() or dest_hooks.is_symlink():
+                dest_hooks.unlink()
+            if mode == "symlink":
+                dest_hooks.symlink_to(hooks_src)
+            else:
+                shutil.copy2(hooks_src, dest_hooks)
+            created.append(".agents/hooks.json")
+
+        # Link/copy mcp_config.json
+        mcp_src = self.toolkit_dir / "mcp" / "mcp_config.json"
+        if mcp_src.exists():
+            dest_mcp = target_agents_dir / "mcp_config.json"
+            if dest_mcp.exists() or dest_mcp.is_symlink():
+                dest_mcp.unlink()
+            if mode == "symlink":
+                dest_mcp.symlink_to(mcp_src)
+            else:
+                shutil.copy2(mcp_src, dest_mcp)
+            created.append(".agents/mcp_config.json")
 
         return created
 

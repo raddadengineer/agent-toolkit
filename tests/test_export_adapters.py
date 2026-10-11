@@ -38,6 +38,10 @@ class TestExportAdapters(unittest.TestCase):
         self.assertTrue((commands_dir / "compress-context.md").exists())
         self.assertTrue((commands_dir / "test-engineer.md").exists())
         self.assertTrue((commands_dir / "system-architect.md").exists())
+        self.assertTrue((commands_dir / "debugger.md").exists())
+        self.assertTrue((commands_dir / "security-audit.md").exists())
+        self.assertTrue((commands_dir / "db-migrate.md").exists())
+        self.assertTrue((commands_dir / "doc-sync.md").exists())
         self.assertTrue((self.target / "CLAUDE.md").exists())
 
     def test_export_cursor(self):
@@ -49,6 +53,10 @@ class TestExportAdapters(unittest.TestCase):
         self.assertTrue((rules_dir / "code-reviewer.mdc").exists())
         self.assertTrue((rules_dir / "test-engineer.mdc").exists())
         self.assertTrue((rules_dir / "system-architect.mdc").exists())
+        self.assertTrue((rules_dir / "debugger.mdc").exists())
+        self.assertTrue((rules_dir / "security-auditor.mdc").exists())
+        self.assertTrue((rules_dir / "database-engineer.mdc").exists())
+        self.assertTrue((rules_dir / "doc-sync.mdc").exists())
         self.assertTrue((rules_dir / "session-workflows.mdc").exists())
         self.assertTrue((rules_dir / "context-optimizer.mdc").exists())
         self.assertTrue((self.target / ".cursorrules").exists())
@@ -64,6 +72,10 @@ class TestExportAdapters(unittest.TestCase):
         self.assertTrue((prompts_dir / "compress-context.prompt.md").exists())
         self.assertTrue((prompts_dir / "test-engineer.prompt.md").exists())
         self.assertTrue((prompts_dir / "system-architect.prompt.md").exists())
+        self.assertTrue((prompts_dir / "debugger.prompt.md").exists())
+        self.assertTrue((prompts_dir / "security-audit.prompt.md").exists())
+        self.assertTrue((prompts_dir / "db-migrate.prompt.md").exists())
+        self.assertTrue((prompts_dir / "doc-sync.prompt.md").exists())
 
     def test_export_roo_clinerules(self):
         results = export_adapters.export_tool_adapters(self.toolkit, self.target, "roo")
@@ -79,6 +91,9 @@ class TestExportAdapters(unittest.TestCase):
         self.assertIn("test-engineer", slugs)
         self.assertIn("system-architect", slugs)
         self.assertIn("context-optimizer", slugs)
+        self.assertIn("debugger", slugs)
+        self.assertIn("security-auditor", slugs)
+        self.assertIn("database-engineer", slugs)
 
         self.assertTrue((self.target / ".clinerules").exists())
 
@@ -90,6 +105,11 @@ class TestExportAdapters(unittest.TestCase):
         self.assertIn("Roo Code / Cline / OpenCode", results)
         self.assertIn("Windsurf", results)
         self.assertIn("Google Antigravity & Gemini CLI", results)
+
+        # Check antigravity hooks and mcp
+        agents_dir = self.target / ".agents"
+        self.assertTrue((agents_dir / "hooks.json").exists())
+        self.assertTrue((agents_dir / "mcp_config.json").exists())
 
 
 if __name__ == "__main__":

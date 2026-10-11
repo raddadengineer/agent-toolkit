@@ -25,40 +25,52 @@ agent-toolkit/
 │   │   ├── SKILL.md                   # Handover workflow & ledger prepender
 │   │   └── scripts/
 │   │       └── sync_context.py        # Multi-file context synchronizer & session ledger
-│   └── pr-prep/                       # Pre-flight PR auditor & description generator
-│       ├── SKILL.md                   # PR preparation & sanitization workflow
+│   ├── pr-prep/                       # Pre-flight PR auditor & description generator
+│   │   ├── SKILL.md                   # PR preparation & sanitization workflow
+│   │   └── scripts/
+│   │       └── audit_pr.py            # Diff auditor (secrets, debug logs) & markdown generator
+│   ├── debugger/                      # Stack trace analysis & automated git bisect skill
+│   │   ├── SKILL.md                   # Root-cause investigation & repro workflow
+│   │   └── scripts/
+│   │       └── bisect_debugger.py     # Minimal reproduction harness & git bisect engine
+│   ├── security-auditor/              # SAST code scanner & CVE dependency auditor skill
+│   │   ├── SKILL.md                   # Pre-flight security & secret audit workflow
+│   │   └── scripts/
+│   │       └── audit_security.py      # AST vulnerability & credential leak scanner
+│   ├── database-engineer/             # Reversible migration & zero-downtime schema skill
+│   │   ├── SKILL.md                   # Migration safety & lock contention workflow
+│   │   └── scripts/
+│   │       └── verify_migrations.py   # DDL rollback proof & lock hazard validator
+│   └── doc-sync/                      # Documentation & schema drift sentinel skill
+│       ├── SKILL.md                   # Drift detection & link verification workflow
 │       └── scripts/
-│           └── audit_pr.py            # Diff auditor (secrets, debug logs) & markdown generator
+│           └── check_doc_drift.py     # Filesystem vs README drift sentinel
 ├── scripts/
 │   ├── compress_context.py            # Universal token optimizer & context packer
 │   └── export_adapters.py             # Multi-tool AI assistant configuration compiler
 ├── agents/
-│   ├── software_engineer/             # Tech Lead & surgical engineering subagent
-│   │   ├── agent.md                   # Orchestration, subagent delegation & zero-false verification
-│   │   └── rules/
-│   │       └── engineering-standards.md # Minimal change & async safety rules
-│   ├── code_reviewer/                 # Adversarial Senior Code Review subagent
-│   │   ├── agent.md                   # Read-only audit persona (security, concurrency)
-│   │   └── rules/
-│   │       └── review-standards.md    # Anti-patterns, error swallowing, and leaks
-│   ├── test_engineer/                 # Deterministic Quality & Test Automation subagent
-│   │   ├── agent.md                   # Test suite generation, mocks, and red-green proof
-│   │   └── rules/
-│   │       └── testing-standards.md   # Determinism, boundary cases, and mock isolation
-│   ├── system_architect/              # Principal Systems Architecture subagent
-│       ├── agent.md                   # High-level architecture, contracts, schemas & ADRs
-│       └── rules/
-│           └── architecture-standards.md # Boundary enforcement & cohesion standards
-│   └── context_optimizer/             # Context Compression & Token Optimization subagent
-│       ├── agent.md                   # Token profiling, AST skeletons & budget packing
-│       └── rules/
-│           └── compression-standards.md # Zero-waste ingestion & hard token limits
+│   ├── software_engineer/             # Tech Lead orchestrator & surgical engineering subagent
+│   ├── code_reviewer/                 # Adversarial read-only senior code review subagent
+│   ├── test_engineer/                 # Deterministic test automation & Red-Green proof subagent
+│   ├── system_architect/              # High-level architecture, contracts & ADR subagent
+│   ├── context_optimizer/             # Token profiling & AST skeleton compression subagent
+│   ├── debugger/                      # Minimal reproduction (repro.sh) & git bisect subagent
+│   ├── security_auditor/              # AppSec SAST scanner & credential leak subagent
+│   └── database_engineer/             # Zero-downtime migration & lock contention subagent
+├── hooks/
+│   └── hooks.json                     # Antigravity PreToolUse safety guards & PostToolUse formatters
+├── mcp/
+│   └── mcp_config.json                # Native MCP suite: Playwright, GitHub, SQLite
 └── tests/
     ├── test_sync_context.py           # Unit tests for sync_context.py
     ├── test_prime_session.py          # Unit tests for prime_session.py
     ├── test_audit_pr.py               # Unit tests for audit_pr.py
     ├── test_export_adapters.py        # Unit tests for export_adapters.py
-    └── test_compress_context.py       # Unit tests for compress_context.py
+    ├── test_compress_context.py       # Unit tests for compress_context.py
+    ├── test_bisect_debugger.py        # Unit tests for bisect_debugger.py
+    ├── test_audit_security.py         # Unit tests for audit_security.py
+    ├── test_verify_migrations.py      # Unit tests for verify_migrations.py
+    └── test_check_doc_drift.py        # Unit tests for check_doc_drift.py
 ```
 
 ---
@@ -256,11 +268,45 @@ A principal systems architecture and technical planning subagent:
 - **Contract & schema design**: Formulates strongly-typed schemas, interface boundaries, and backwards-compatible migrations.
 - **Architectural Decision Records (ADRs)**: Documents problem statements, evaluated alternatives, and trade-off rationales.
 
-### 9. ⚡ `context_optimizer` (Subagent)
+### 9. ⚡ `context_optimizer` (Subagent & Skill)
 A specialized token optimization and AST context compression subagent:
 - **Token Profiling**: Profiles repository-wide token consumption and flags oversized bloat or accidental fixtures.
 - **AST Skeleton Extraction**: Extracts class and method signatures for Python, TypeScript, Swift, Go, and Rust with 85–95% token savings.
 - **Repo Map Packaging**: Packs multi-module projects into high-density Markdown/XML prompts (`REPO_MAP.md`) under strict token budgets.
+
+### 10. 🔬 `debugger` (Subagent & Skill)
+A root-cause investigation and regression bisection subagent:
+- **Reproduction First**: Authors standalone reproduction harnesses (`repro.sh` / `repro.py`) that exit `1` on failure before touching production code.
+- **Automated Git Bisect**: Runs binary search across commit history with an automated test command to isolate the exact breaking commit.
+- **Stack Trace Deobfuscator**: Pinpoints originating call site from Python, JS/TS, Swift, and Go stack traces.
+
+### 11. 🛡️ `security_auditor` (Subagent & Skill)
+An application security (AppSec) and static analysis subagent:
+- **SAST Scanner**: Flags SQL injection, command execution (`shell=True`, `eval`), and unsafe deserialization.
+- **Secret & Key Hygiene**: Scans for leaked AWS keys, GitHub tokens, and private key blocks.
+- **Dependency Audit**: Inspects package manifests (`package.json`, `requirements.txt`, `Cargo.toml`) for known CVE hazards.
+
+### 12. 🗄️ `database_engineer` (Subagent & Skill)
+A database reliability and zero-downtime schema subagent:
+- **Reversibility Proof**: Enforces that every forward migration has an active, tested downgrade/rollback counterpart.
+- **Lock Contention Prevention**: Blocks dangerous DDL anti-patterns like `ADD COLUMN NOT NULL` without `DEFAULT` and synchronous index creation.
+- **Query Plan Optimization**: Guides `EXPLAIN ANALYZE` reviews for hot path database queries.
+
+### 13. 📖 `doc-sync` (Skill)
+A documentation and schema drift sentinel:
+- **Drift Detection**: Verifies that documented skills, subagents, and slash commands match actual disk contents.
+- **Broken Link Verification**: Flags broken internal markdown links across repository guides.
+
+### 14. 🪝 Lifecycle Hooks & Auto-Formatters (`hooks.json`)
+Native Antigravity lifecycle hooks:
+- **`PreToolUse` Safety Guard**: Inspects shell commands before execution and blocks destructive actions (`rm -rf /`, force pushes to `main`, disk overwrites).
+- **`PostToolUse` Auto-Formatter**: Runs language formatters (`ruff`, `prettier`, `swiftformat`, `gofmt`) automatically on modified files.
+
+### 15. 🔌 Native MCP Suite (`mcp_config.json`)
+Pre-packaged Model Context Protocol servers:
+- **Playwright**: Headless browser automation, visual inspection, and live DOM testing.
+- **GitHub**: Remote CI/CD log inspection (`gh run view`), issue lookup, and PR review triage.
+- **SQLite**: Local SQL inspection and execution plan auditing.
 
 ---
 
