@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 #
-# install.sh — Installs or symlinks agent skills and subagents into target repositories.
+# install.sh — Installs, symlinks, or exports agent skills, subagents, and multi-tool adapters.
 #
 # Usage:
 #   ./install.sh --list
-#   ./install.sh --target /path/to/my-repo --skill session-closer
+#   ./install.sh --target /path/to/my-repo --tool all
+#   ./install.sh --target /path/to/my-repo --tool claude
+#   ./install.sh --target /path/to/my-repo --tool cursor
 #   ./install.sh --target /path/to/my-repo --all
-#   ./install.sh --target /path/to/my-repo --mode copy --all
+#   ./install.sh --target /path/to/my-repo --skill session-closer
 #
 
 set -euo pipefail
@@ -14,12 +16,14 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SKILLS_DIR="${SCRIPT_DIR}/skills"
 AGENTS_DIR="${SCRIPT_DIR}/agents"
+EXPORT_SCRIPT="${SCRIPT_DIR}/scripts/export_adapters.py"
 
 TARGET_DIR=""
 MODE="symlink" # "symlink" or "copy"
 INSTALL_SKILL=""
 INSTALL_AGENT=""
 INSTALL_ALL=false
+TARGET_TOOL=""
 LIST_ONLY=false
 
 print_usage() {
@@ -28,9 +32,11 @@ Usage: $(basename "$0") [options]
 
 Options:
   -t, --target <path>      Target project repository path (default: current directory)
+      --tool <name>        Export configurations for a specific AI assistant:
+                           all, claude, cursor, copilot, roo, windsurf, antigravity
   -s, --skill <name>       Install specific skill by name (e.g., session-closer)
   -a, --agent <name>       Install specific agent by name (e.g., software_engineer)
-      --all                Install all available skills and agents
+      --all                Install all available skills and agents (.agents/)
   -m, --mode <symlink|copy>
                            Installation mode (default: symlink)
   -l, --list               List available skills and agents
@@ -38,8 +44,11 @@ Options:
 
 Examples:
   $(basename "$0") --list
+  $(basename "$0") --target ~/Dev-Projects/my-app --tool all
+  $(basename "$0") --target ~/Dev-Projects/my-app --tool claude
+  $(basename "$0") --target ~/Dev-Projects/my-app --tool cursor
+  $(basename "$0") --target ~/Dev-Projects/my-app --all
   $(basename "$0") --target ~/Dev-Projects/my-app --skill session-closer
-  $(basename "$0") --target ~/Dev-Projects/my-app --all --mode copy
 EOF
 }
 
@@ -71,6 +80,16 @@ list_components() {
     else
         echo "  (None found)"
     fi
+
+    echo ""
+    echo "Supported AI Tools (--tool <name>):"
+    echo "  • all          (Configures all tools simultaneously)"
+    echo "  • claude       (Claude Code: .claude/commands/, CLAUDE.md)"
+    echo "  • cursor       (Cursor: .cursor/rules/*.mdc, .cursorrules)"
+    echo "  • copilot      (GitHub Copilot: .github/copilot-instructions.md, prompts/)"
+    echo "  • roo          (Roo Code / Cline / OpenCode: .roomodes, .clinerules)"
+    echo "  • windsurf     (Windsurf: .windsurfrules)"
+    echo "  • antigravity  (Google Antigravity & Gemini CLI: .agents/)"
 }
 
 install_item() {
@@ -105,6 +124,10 @@ while [[ $# -gt 0 ]]; do
     case "$1" in
         -t|--target)
             TARGET_DIR="$2"
+            shift 2
+            ;;
+        --tool)
+            TARGET_TOOL="$2"
             shift 2
             ;;
         -s|--skill)
@@ -151,6 +174,17 @@ fi
 TARGET_DIR="$(cd "${TARGET_DIR}" && pwd)"
 TARGET_AGENTS_DIR="${TARGET_DIR}/.agents"
 
+# 1. Handle --tool adapter export
+if [ -n "${TARGET_TOOL}" ]; then
+    if [ ! -f "${EXPORT_SCRIPT}" ]; then
+        echo "❌ Export script not found: ${EXPORT_SCRIPT}"
+        exit 1
+    fi
+    python3 "${EXPORT_SCRIPT}" --target "${TARGET_DIR}" --tool "${TARGET_TOOL}" --mode "${MODE}"
+    exit 0
+fi
+
+# 2. Handle native .agents/ installation
 echo "🎯 Target repository: ${TARGET_DIR}"
 echo "⚙️ Mode: ${MODE}"
 
@@ -198,7 +232,7 @@ if [ -n "${INSTALL_AGENT}" ]; then
 fi
 
 if [ -z "${INSTALL_SKILL}" ] && [ -z "${INSTALL_AGENT}" ]; then
-    echo "⚠️ No action specified. Use --all, --skill <name>, or --agent <name>."
+    echo "⚠️ No action specified. Use --tool <name>, --all, --skill <name>, or --agent <name>."
     print_usage
     exit 1
 fi

@@ -30,3 +30,9 @@ These guidelines enforce discipline, safety, and reliability when building and m
 - Always run the relevant test suite before declaring a task complete.
 - Verify real exit codes (`0` for success). Never assume or hallucinate test results.
 - If no automated tests exist for the touched code, write unit tests or provide explicit reproducible verification commands.
+
+---
+
+## 5. Context Efficiency & Token Discipline
+- Use AST skeletonization (`compress_context.py --skeleton` or `context-optimizer`) when exploring large files or unfamiliar modules to extract interfaces with 85–95% token savings.
+- Never dump whole directories or massive implementation files into context when only structural signatures are required.
