@@ -707,6 +707,31 @@ Scan documentation for drift against codebase reality and verify that all intern
                 shutil.copy2(mcp_src, dest_mcp)
             created.append(".agents/mcp_config.json")
 
+        # Link/copy scripts
+        scripts_src = self.toolkit_dir / "scripts"
+        if scripts_src.exists():
+            dest_scripts = target_agents_dir / "scripts"
+            if dest_scripts.exists() or dest_scripts.is_symlink():
+                dest_scripts.unlink() if dest_scripts.is_symlink() else shutil.rmtree(dest_scripts)
+            if mode == "symlink":
+                dest_scripts.symlink_to(scripts_src)
+            else:
+                shutil.copytree(scripts_src, dest_scripts)
+            created.append(".agents/scripts")
+
+        # Ensure AGENTS.md and GEMINI.md exist
+        agents_md = self.target_dir / "AGENTS.md"
+        if not agents_md.exists():
+            base_content = f"# Project Guidelines & Architecture\n\n{self.eng_standards}\n"
+            agents_md.write_text(base_content, encoding="utf-8")
+            created.append("AGENTS.md")
+
+        gemini_md = self.target_dir / "GEMINI.md"
+        if not gemini_md.exists():
+            base_content = f"# Project Guidelines & Architecture\n\n{self.eng_standards}\n"
+            gemini_md.write_text(base_content, encoding="utf-8")
+            created.append("GEMINI.md")
+
         return created
 
 

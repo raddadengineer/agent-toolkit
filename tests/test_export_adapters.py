@@ -106,10 +106,11 @@ class TestExportAdapters(unittest.TestCase):
         self.assertIn("Windsurf", results)
         self.assertIn("Google Antigravity & Gemini CLI", results)
 
-        # Check antigravity hooks and mcp
+        # Check antigravity hooks, mcp, and scripts
         agents_dir = self.target / ".agents"
         self.assertTrue((agents_dir / "hooks.json").exists())
         self.assertTrue((agents_dir / "mcp_config.json").exists())
+        self.assertTrue((agents_dir / "scripts").exists())
 
 
 if __name__ == "__main__":

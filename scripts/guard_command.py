@@ -17,7 +17,7 @@ import re
 import sys
 
 DESTRUCTIVE_PATTERNS = [
-    (re.compile(r'\brm\s+-[rRfF]*\s+(?:/|~|\$HOME)\b'), "Recursive deletion of root or home directory"),
+    (re.compile(r'\brm\s+-[rRfF]*\s+(?:/|~|\$HOME)(?:\s|$|/)'), "Recursive deletion of root or home directory"),
     (re.compile(r'\bgit\s+push\s+.*(?:--force|-f).*(?:main|master|release|prod)\b'), "Force push to protected branch"),
     (re.compile(r'\bgit\s+reset\s+--hard\s+origin/(?:main|master)\b'), "Hard reset discarding uncommitted changes"),
     (re.compile(r'\bdd\s+if=.*of=(?:/dev/sd|/dev/nvme|/dev/disk)\b'), "Raw disk write overwrite hazard"),
