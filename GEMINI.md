@@ -23,6 +23,7 @@ Welcome to `agent-toolkit`, a centralized library of reusable skills, specialize
 - `hooks/`: PreToolUse and PostToolUse lifecycle hook definitions (`hooks.json`).
 - `mcp/`: Native Model Context Protocol server configurations (`mcp_config.json`).
 - `tests/`: Deterministic unit tests validating synchronizers, compilers, compressors, and sentinels.
+- `bin/`: Global CLI entry point launcher (`bin/atk`) for cross-project execution.
 - `install.sh`: Unified multi-tool installer and symlink manager supporting `--mode symlink` and `--mode copy`.
 
 ## 📜 Core Mandates & Engineering Discipline

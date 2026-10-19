@@ -4,6 +4,22 @@ This ledger records engineering session summaries, completed features, architect
 
 ---
 
+### Session [2026-10-19 11:18] — Path Generalization & Universal CLI Installer Polish
+
+- **Goal**:
+  - Purge environment-specific /Dev-Projects paths from documentation and scripts, finalize universal install options (--global, --update), and ensure cross-platform repository portability
+- **Changes Completed**:
+  - README.md: Replaced all /Dev-Projects references with generic ~/agent-toolkit and /path/to/my-project paths
+  - README.md: Added accurate GitHub clone URL (https://github.com/raddadengineer/agent-toolkit.git)
+  - install.sh: Added -g/--global/--link and -u/--update options; updated help menu examples with generic paths
+  - bin/atk: Added update subcommand to pull latest toolkit changes and refresh project configurations
+- **Validation**:
+  - Verified grep -rn 'Dev-Projects' returns 0 occurrences, doc drift sentinel passed (exit 0), 36/36 unit tests passed (exit 0), and commits pushed to origin/main
+- **Next Steps / Handover**:
+  - Test end-to-end installation and workflows on a separate clean project directory
+
+---
+
 ### Session [2026-10-18 20:34] — Global CLI Launcher (atk) Implementation & Testing
 
 - **Goal**:
