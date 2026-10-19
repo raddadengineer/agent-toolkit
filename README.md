@@ -11,6 +11,8 @@ Instead of recreating session scripts, agent definitions, and context rules acro
 ```
 agent-toolkit/
 ├── README.md                          # Documentation and comprehensive usage guide
+├── bin/
+│   └── atk                            # Global CLI launcher (symlinked to ~/.local/bin/atk)
 ├── install.sh                         # Multi-tool installer and symlink manager
 ├── skills/
 │   ├── context-optimizer/             # Token optimization & AST context compression skill
@@ -62,6 +64,7 @@ agent-toolkit/
 ├── mcp/
 │   └── mcp_config.json                # Native MCP suite: Playwright, GitHub, SQLite
 └── tests/
+    ├── test_atk_cli.py                # Unit tests for bin/atk global CLI
     ├── test_sync_context.py           # Unit tests for sync_context.py
     ├── test_prime_session.py          # Unit tests for prime_session.py
     ├── test_audit_pr.py               # Unit tests for audit_pr.py
@@ -327,39 +330,193 @@ Pre-packaged Model Context Protocol servers:
 
 ## 🚀 Quick Start & Installation
 
-Use `install.sh` to configure any target repository.
+### ❓ How Installation Works (Do I copy the repository files?)
 
-### 1. Configure All Tools at Once (Recommended)
-```bash
-# Sets up Claude, Cursor, Copilot, Roo, Windsurf, and Antigravity:
-./install.sh --target ~/Dev-Projects/my-app --tool all
+> [!IMPORTANT]
+> **Do NOT copy this entire repository into your project.**
+> `agent-toolkit` is designed to be cloned **once** into a central location on your machine (e.g., `~/Dev-Projects/agent-toolkit` or `~/.agent-toolkit`).
+>
+> You run `install.sh` from the toolkit pointing to your target project (`--target /path/to/my-project`), or run the script directly from inside your project. The installer then generates or symlinks *only* the specific configuration folders and agent skills needed by your chosen AI assistant(s) into your project.
+
+```
+┌──────────────────────────────────────────────┐
+│  Central Toolkit (~/agent-toolkit)           │
+│  ├── install.sh                              │
+│  ├── skills/                                 │
+│  ├── agents/                                 │
+│  └── scripts/                                │
+└──────────────────────┬───────────────────────┘
+                       │
+       ./install.sh --target ~/my-app --tool all
+                       │
+                       ▼
+┌──────────────────────────────────────────────┐
+│  Target Project (~/my-app)                   │
+│  ├── .agents/skills/    (Antigravity/Gemini) │
+│  ├── .claude/commands/  (Claude Code)        │
+│  ├── .cursor/rules/     (Cursor MDC)         │
+│  ├── .github/prompts/   (Copilot)            │
+│  ├── .roomodes          (Roo / Cline)        │
+│  ├── .windsurfrules     (Windsurf)           │
+│  └── SESSION_LOG.md     (Session Ledger)     │
+└──────────────────────────────────────────────┘
 ```
 
-### 2. Configure for a Specific Assistant
+---
+
+### 📦 Installation Modes: Symlink vs. Copy
+
+`install.sh` supports two distribution modes via `--mode <symlink|copy>`:
+
+| Mode | Flag | How It Works | Best For |
+| :--- | :--- | :--- | :--- |
+| **Symlink** *(Default)* | `--mode symlink` | Creates symbolic links from your project back to your central `agent-toolkit` directory. | **Solo / Local Dev**: When you run `git pull` in `agent-toolkit`, all your projects immediately get the latest skills and agents without re-installing. |
+| **Copy / Standalone** | `--mode copy` | Copies the physical files and scripts directly into your target project directory. | **Team Repos & CI/CD**: The target repository is 100% self-contained. Teammates and CI runners do not need `agent-toolkit` cloned on their machines. |
+
+---
+
+### 🛠️ Step-by-Step Installation Guide
+
+#### Step 1: Clone `agent-toolkit` to a Central Directory
+Clone this repository once to a central tools or development folder on your machine:
 ```bash
-# Claude Code:
+git clone https://github.com/your-username/agent-toolkit.git ~/Dev-Projects/agent-toolkit
+```
+
+#### Step 2: Install into Your Target Project
+
+You can run `install.sh` using either of the following approaches:
+
+**Approach A: From the `agent-toolkit` directory (Specifying `--target`):**
+```bash
+cd ~/Dev-Projects/agent-toolkit
+
+# Configure all AI tools at once with symlinks (Recommended for local dev):
+./install.sh --target ~/Dev-Projects/my-app --tool all
+
+# Or copy physical files for a self-contained team repository:
+./install.sh --target ~/Dev-Projects/my-app --tool all --mode copy
+```
+
+**Approach B: From inside your target project directory:**
+```bash
+cd ~/Dev-Projects/my-app
+
+# Run the installer directly pointing to your central toolkit location:
+~/Dev-Projects/agent-toolkit/install.sh --tool all
+```
+
+---
+
+### 🎯 Assistant-Specific Installation Recipes
+
+If you only use a specific AI assistant, you can install just its configuration:
+
+```bash
+# 1. Claude Code (.claude/commands/, CLAUDE.md):
 ./install.sh --target ~/Dev-Projects/my-app --tool claude
 
-# Cursor:
+# 2. Cursor (.cursor/rules/*.mdc, .cursorrules):
 ./install.sh --target ~/Dev-Projects/my-app --tool cursor
 
-# GitHub Copilot:
+# 3. GitHub Copilot (.github/copilot-instructions.md, .github/prompts/):
 ./install.sh --target ~/Dev-Projects/my-app --tool copilot
 
-# Roo Code / Cline:
+# 4. Roo Code / Cline (.roomodes, .clinerules):
 ./install.sh --target ~/Dev-Projects/my-app --tool roo
 
-# Windsurf:
+# 5. Windsurf (.windsurfrules):
 ./install.sh --target ~/Dev-Projects/my-app --tool windsurf
 
-# Google Antigravity & Gemini CLI (.agents/):
-./install.sh --target ~/Dev-Projects/my-app --all
+# 6. Google Antigravity & Gemini CLI (.agents/, AGENTS.md, GEMINI.md):
+./install.sh --target ~/Dev-Projects/my-app --tool antigravity
+# (or ./install.sh --target ~/Dev-Projects/my-app --all)
 ```
 
-### 3. List Available Components & Tools
+To inspect all available skills, subagents, and supported assistants:
 ```bash
 ./install.sh --list
 ```
+
+---
+
+### ⚡ Global Terminal CLI: `atk`
+
+`agent-toolkit` includes a unified global CLI launcher (`bin/atk`) that makes all skills, auditors, and installers accessible from **any** directory in your terminal without typing repository paths.
+
+#### 1. Enable Global Access (One-time setup):
+```bash
+cd ~/Dev-Projects/agent-toolkit
+./bin/atk link
+```
+*(This symlinks `atk` and `agent-toolkit` directly into `~/.local/bin`, which is typically in your `$PATH`.)*
+
+#### 2. Run Commands in Any Project:
+```bash
+cd ~/Dev-Projects/my-app
+
+# Install all AI assistant configs into the current directory:
+atk install
+
+# Or install for a specific tool:
+atk install --tool cursor
+atk install --mode copy
+
+# Daily development workflow shortcuts:
+atk start        # Prime workspace and ingest recent handover notes
+atk profile      # Analyze token hotspots across files
+atk audit        # Scan diff and codebase for security/credential leaks
+atk pr           # Audit diff and generate ready-to-copy PR description
+atk sync         # Synchronize AGENTS.md, CLAUDE.md, and GEMINI.md
+atk close        # Wrap up session and record in SESSION_LOG.md
+```
+
+> [!NOTE]
+> **AI Agent Compatibility**: Enabling `atk` does **not** alter how AI coding assistants work. Inside chat interfaces, agents in Antigravity, Claude Code, Cursor, Copilot, and Roo continue discovering skills, rules, and subagents natively. In addition, agents can now run `atk` directly when executing bash commands without searching for script paths.
+
+---
+
+### 🏁 Step 3: Initialize Session Ledger & Context Baseline
+
+After running `install.sh`, navigate to your target project and initialize your `SESSION_LOG.md` and baseline context files:
+
+```bash
+cd ~/Dev-Projects/my-app
+
+# Initializes SESSION_LOG.md and synchronizes AGENTS.md, CLAUDE.md, and GEMINI.md:
+python3 .agents/skills/session-closer/scripts/sync_context.py --init
+```
+
+> [!TIP]
+> If your project already has an `AGENTS.md` or `CLAUDE.md`, `sync_context.py --init` preserves your existing guidelines and synchronizes them across all context files via SHA-256 validation.
+
+---
+
+### 🔄 Updating `agent-toolkit` Across Projects
+
+- **If you installed with `--mode symlink` (default):**
+  Simply pull the latest changes in your central `agent-toolkit` repository:
+  ```bash
+  cd ~/Dev-Projects/agent-toolkit
+  git pull origin main
+  ```
+  All linked projects immediately inherit updated skills, subagents, and hooks without needing re-installation.
+
+- **If you installed with `--mode copy`:**
+  Pull updates in the central toolkit, then re-run the installer targeting your project:
+  ```bash
+  cd ~/Dev-Projects/agent-toolkit
+  git pull origin main
+  ./install.sh --target ~/Dev-Projects/my-app --tool all --mode copy
+  ```
+
+---
+
+### 👥 Team Repositories & Git Hygiene
+
+When sharing a project repository with a team:
+- **Using `--mode copy` (Team Setup)**: Commit the generated `.agents/`, `.cursor/`, `.claude/`, `.github/`, and `SESSION_LOG.md` files to version control so all team members and AI assistants share identical standards.
+- **Using `--mode symlink` (Personal Local Setup)**: If teammates do not use `agent-toolkit`, you can add `.agents/`, `.claude/`, and `.roomodes` to your repository's `.gitignore` or global `~/.gitignore_global`.
 
 ---
 

@@ -1,0 +1,184 @@
+#!/usr/bin/env bash
+#
+# atk — Global Agent Toolkit CLI launcher
+#
+
+set -euo pipefail
+
+# Resolve symlinks to find real toolkit directory
+TARGET="${BASH_SOURCE[0]}"
+while [ -L "$TARGET" ]; do
+    DIR="$(cd -P "$(dirname "$TARGET")" >/dev/null 2>&1 && pwd)"
+    TARGET="$(readlink "$TARGET")"
+    [[ $TARGET != /* ]] && TARGET="$DIR/$TARGET"
+done
+BIN_DIR="$(cd -P "$(dirname "$TARGET")" >/dev/null 2>&1 && pwd)"
+TOOLKIT_DIR="$(cd -P "$BIN_DIR/.." >/dev/null 2>&1 && pwd)"
+
+print_help() {
+    cat <<EOF
+🛠️  Agent Toolkit CLI (atk)
+
+Global command-line runner for skills, subagents, and multi-tool adapters.
+
+Usage:
+  atk <command> [options]
+
+Core Commands:
+  install [opts]       Install toolkit configurations into current project
+                       (defaults to: install.sh --target . --tool all)
+  start                Prime workspace and ingest recent handover notes (prime_session.py)
+  close                Close session, update SESSION_LOG.md and sync context (sync_context.py)
+  sync [file]          Synchronize AGENTS.md, CLAUDE.md, and GEMINI.md
+  check                Check SHA-256 sync status of context files
+  status               Display status and checksums of tracked context files
+
+Optimization & Auditing:
+  profile [opts]       Profile repository token consumption across files
+  skeleton [file]      Generate AST skeleton without implementation bodies
+  pack [opts]          Pack repo into hybrid high-density context map under token budget
+  audit [opts]         Run SAST security and secret leak scan (audit_security.py)
+  pr [opts]            Run pre-flight diff leak audit & PR description generator
+  db [opts]            Verify database migration safety & rollback reversibility
+
+Toolkit Management:
+  list                 List available skills, subagents, and AI assistants
+  update               Pull latest toolkit updates and refresh current project
+  test                 Run the test suite across all toolkit components
+  link                 Symlink 'atk' and 'agent-toolkit' into ~/.local/bin
+  version              Show current agent-toolkit version & directory
+  help                 Show this help message
+
+Examples:
+  atk install                     # Setup all AI tools for current project
+  atk install --tool cursor       # Setup only Cursor MDC rules
+  atk install --mode copy         # Copy files for self-contained team repo
+  atk start                       # Read handover and check git branch
+  atk profile                     # Inspect token hotspots
+  atk sync                        # Sync AGENTS.md -> CLAUDE.md & GEMINI.md
+  atk link                        # Ensure 'atk' is globally accessible in PATH
+EOF
+}
+
+setup_link() {
+    local target_dir="${HOME}/.local/bin"
+    mkdir -p "${target_dir}"
+    ln -sf "${BIN_DIR}/atk" "${target_dir}/atk"
+    ln -sf "${BIN_DIR}/atk" "${target_dir}/agent-toolkit"
+    echo "✅ Successfully linked 'atk' and 'agent-toolkit' into ${target_dir}"
+    echo "   Ensure ${target_dir} is in your PATH."
+}
+
+if [ $# -eq 0 ]; then
+    print_help
+    exit 0
+fi
+
+COMMAND="$1"
+
+case "${COMMAND}" in
+    install)
+        shift
+        if [ $# -eq 0 ]; then
+            "${TOOLKIT_DIR}/install.sh" --target "$(pwd)" --tool all
+        else
+            if [[ ! " $* " =~ " --target " ]] && [[ ! " $* " =~ " -t " ]]; then
+                "${TOOLKIT_DIR}/install.sh" --target "$(pwd)" "$@"
+            else
+                "${TOOLKIT_DIR}/install.sh" "$@"
+            fi
+        fi
+        ;;
+    start|prime|session-starter)
+        shift
+        python3 "${TOOLKIT_DIR}/skills/session-starter/scripts/prime_session.py" "$@"
+        ;;
+    close|session-closer)
+        shift
+        python3 "${TOOLKIT_DIR}/skills/session-closer/scripts/sync_context.py" "$@"
+        ;;
+    sync)
+        shift
+        if [ $# -eq 0 ]; then
+            python3 "${TOOLKIT_DIR}/skills/session-closer/scripts/sync_context.py" --sync
+        else
+            python3 "${TOOLKIT_DIR}/skills/session-closer/scripts/sync_context.py" --sync "$1"
+        fi
+        ;;
+    check)
+        shift
+        python3 "${TOOLKIT_DIR}/skills/session-closer/scripts/sync_context.py" --check "$@"
+        ;;
+    status)
+        shift
+        python3 "${TOOLKIT_DIR}/skills/session-closer/scripts/sync_context.py" --status "$@"
+        ;;
+    profile)
+        shift
+        python3 "${TOOLKIT_DIR}/skills/context-optimizer/scripts/compress_context.py" --profile "$@"
+        ;;
+    skeleton)
+        shift
+        if [ $# -eq 0 ]; then
+            python3 "${TOOLKIT_DIR}/skills/context-optimizer/scripts/compress_context.py" --skeleton
+        elif [ -f "$1" ]; then
+            python3 "${TOOLKIT_DIR}/skills/context-optimizer/scripts/compress_context.py" --file "$1" --skeleton
+        else
+            python3 "${TOOLKIT_DIR}/skills/context-optimizer/scripts/compress_context.py" --skeleton "$@"
+        fi
+        ;;
+    pack)
+        shift
+        python3 "${TOOLKIT_DIR}/skills/context-optimizer/scripts/compress_context.py" --hybrid "$@"
+        ;;
+    audit|security)
+        shift
+        python3 "${TOOLKIT_DIR}/skills/security-auditor/scripts/audit_security.py" "$@"
+        ;;
+    pr|pr-prep)
+        shift
+        python3 "${TOOLKIT_DIR}/skills/pr-prep/scripts/audit_pr.py" "$@"
+        ;;
+    db|database)
+        shift
+        python3 "${TOOLKIT_DIR}/skills/database-engineer/scripts/verify_migrations.py" "$@"
+        ;;
+    doc-check|drift)
+        shift
+        python3 "${TOOLKIT_DIR}/skills/doc-sync/scripts/check_doc_drift.py" --dir . --check "$@"
+        ;;
+    list)
+        shift
+        "${TOOLKIT_DIR}/install.sh" --list
+        ;;
+    update)
+        shift
+        echo "🔄 Updating agent-toolkit repository..."
+        git -C "${TOOLKIT_DIR}" pull origin main
+        echo "✅ Toolkit repository updated."
+        if [ -d ".agents" ] || [ -d ".claude" ] || [ -d ".cursor" ] || [ -d ".github" ]; then
+            echo "📦 Refreshing configurations in current project..."
+            "${TOOLKIT_DIR}/install.sh" --target "$(pwd)" --tool all "$@"
+        fi
+        ;;
+    test)
+        shift
+        python3 -m unittest discover -s "${TOOLKIT_DIR}/tests" "$@"
+        ;;
+    link|setup)
+        setup_link
+        ;;
+    version|-v|--version)
+        echo "agent-toolkit (atk) v1.0.0"
+        echo "Root: ${TOOLKIT_DIR}"
+        ;;
+    help|-h|--help)
+        print_help
+        ;;
+    *)
+        echo "❌ Unknown command: ${COMMAND}"
+        echo ""
+        print_help
+        exit 1
+        ;;
+esac

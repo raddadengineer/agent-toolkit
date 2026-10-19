@@ -25,6 +25,8 @@ INSTALL_AGENT=""
 INSTALL_ALL=false
 TARGET_TOOL=""
 LIST_ONLY=false
+INSTALL_GLOBAL=false
+UPDATE_REPO=false
 
 print_usage() {
     cat <<EOF
@@ -39,11 +41,15 @@ Options:
       --all                Install all available skills and agents (.agents/)
   -m, --mode <symlink|copy>
                            Installation mode (default: symlink)
+  -g, --global, --link     Install global 'atk' CLI launcher into ~/.local/bin
+  -u, --update             Pull latest toolkit updates from origin main
   -l, --list               List available skills and agents
   -h, --help               Display this help message
 
 Examples:
   $(basename "$0") --list
+  $(basename "$0") --global
+  $(basename "$0") --update
   $(basename "$0") --target ~/Dev-Projects/my-app --tool all
   $(basename "$0") --target ~/Dev-Projects/my-app --tool claude
   $(basename "$0") --target ~/Dev-Projects/my-app --tool cursor
@@ -120,6 +126,20 @@ install_item() {
     fi
 }
 
+setup_global() {
+    local bin_source="${SCRIPT_DIR}/bin/atk"
+    local target_dir="${HOME}/.local/bin"
+    if [ ! -f "${bin_source}" ]; then
+        echo "❌ Global CLI launcher not found: ${bin_source}"
+        exit 1
+    fi
+    mkdir -p "${target_dir}"
+    ln -sf "${bin_source}" "${target_dir}/atk"
+    ln -sf "${bin_source}" "${target_dir}/agent-toolkit"
+    echo "✅ Successfully installed global 'atk' and 'agent-toolkit' into ${target_dir}"
+    echo "   Ensure ${target_dir} is in your PATH."
+}
+
 while [[ $# -gt 0 ]]; do
     case "$1" in
         -t|--target)
@@ -146,6 +166,14 @@ while [[ $# -gt 0 ]]; do
             MODE="$2"
             shift 2
             ;;
+        -g|--global|--link)
+            INSTALL_GLOBAL=true
+            shift
+            ;;
+        -u|--update)
+            UPDATE_REPO=true
+            shift
+            ;;
         -l|--list)
             LIST_ONLY=true
             shift
@@ -161,6 +189,22 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+if [ "${UPDATE_REPO}" = true ]; then
+    echo "🔄 Updating agent-toolkit repository..."
+    git -C "${SCRIPT_DIR}" pull origin main
+    echo "✅ Repository updated."
+    if [ -z "${TARGET_TOOL}" ] && [ "${INSTALL_ALL}" = false ] && [ -z "${INSTALL_SKILL}" ] && [ -z "${INSTALL_AGENT}" ] && [ "${INSTALL_GLOBAL}" = false ]; then
+        exit 0
+    fi
+fi
+
+if [ "${INSTALL_GLOBAL}" = true ]; then
+    setup_global
+    if [ -z "${TARGET_TOOL}" ] && [ "${INSTALL_ALL}" = false ] && [ -z "${INSTALL_SKILL}" ] && [ -z "${INSTALL_AGENT}" ]; then
+        exit 0
+    fi
+fi
 
 if [ "${LIST_ONLY}" = true ]; then
     list_components
@@ -207,6 +251,17 @@ if [ "${INSTALL_ALL}" = true ]; then
                 install_item "$a" "${TARGET_AGENTS_DIR}/agents" "$name"
             fi
         done
+    fi
+
+    # Install hooks, MCP configuration, and shared scripts
+    if [ -f "${SCRIPT_DIR}/hooks/hooks.json" ]; then
+        install_item "${SCRIPT_DIR}/hooks/hooks.json" "${TARGET_AGENTS_DIR}" "hooks.json"
+    fi
+    if [ -f "${SCRIPT_DIR}/mcp/mcp_config.json" ]; then
+        install_item "${SCRIPT_DIR}/mcp/mcp_config.json" "${TARGET_AGENTS_DIR}" "mcp_config.json"
+    fi
+    if [ -d "${SCRIPT_DIR}/scripts" ]; then
+        install_item "${SCRIPT_DIR}/scripts" "${TARGET_AGENTS_DIR}" "scripts"
     fi
 
     echo "✅ Successfully installed all components to ${TARGET_DIR}/.agents"
