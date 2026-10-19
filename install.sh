@@ -50,11 +50,11 @@ Examples:
   $(basename "$0") --list
   $(basename "$0") --global
   $(basename "$0") --update
-  $(basename "$0") --target ~/Dev-Projects/my-app --tool all
-  $(basename "$0") --target ~/Dev-Projects/my-app --tool claude
-  $(basename "$0") --target ~/Dev-Projects/my-app --tool cursor
-  $(basename "$0") --target ~/Dev-Projects/my-app --all
-  $(basename "$0") --target ~/Dev-Projects/my-app --skill session-closer
+  $(basename "$0") --target /path/to/my-project --tool all
+  $(basename "$0") --target /path/to/my-project --tool claude
+  $(basename "$0") --target /path/to/my-project --tool cursor
+  $(basename "$0") --target /path/to/my-project --all
+  $(basename "$0") --target /path/to/my-project --skill session-closer
 EOF
 }
 
