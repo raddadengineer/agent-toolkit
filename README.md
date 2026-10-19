@@ -377,28 +377,43 @@ Pre-packaged Model Context Protocol servers:
 
 ### 🛠️ Step-by-Step Installation Guide
 
-#### Step 1: Clone `agent-toolkit` to a Central Directory
+#### Step 1: Clone `agent-toolkit` & Enable Global CLI
 Clone this repository once to a central tools or development folder on your machine:
 ```bash
-git clone https://github.com/your-username/agent-toolkit.git ~/Dev-Projects/agent-toolkit
+git clone https://github.com/raddadengineer/agent-toolkit.git ~/Dev-Projects/agent-toolkit
+cd ~/Dev-Projects/agent-toolkit
+
+# Enable global 'atk' CLI launcher into ~/.local/bin (Recommended):
+./install.sh --global
 ```
 
 #### Step 2: Install into Your Target Project
 
-You can run `install.sh` using either of the following approaches:
+You can run the installer using any of the following approaches:
 
-**Approach A: From the `agent-toolkit` directory (Specifying `--target`):**
+**Approach A: Using the Global `atk` CLI (Fastest):**
+```bash
+cd ~/Dev-Projects/my-app
+
+# Configure all AI tools at once (symlinks for local dev):
+atk install
+
+# Or copy physical files for a self-contained team repository:
+atk install --mode copy
+```
+
+**Approach B: From the `agent-toolkit` directory (Specifying `--target`):**
 ```bash
 cd ~/Dev-Projects/agent-toolkit
 
-# Configure all AI tools at once with symlinks (Recommended for local dev):
+# Configure all AI tools at once with symlinks:
 ./install.sh --target ~/Dev-Projects/my-app --tool all
 
-# Or copy physical files for a self-contained team repository:
+# Or copy physical files:
 ./install.sh --target ~/Dev-Projects/my-app --tool all --mode copy
 ```
 
-**Approach B: From inside your target project directory:**
+**Approach C: From inside your target project directory:**
 ```bash
 cd ~/Dev-Projects/my-app
 
@@ -415,9 +430,11 @@ If you only use a specific AI assistant, you can install just its configuration:
 ```bash
 # 1. Claude Code (.claude/commands/, CLAUDE.md):
 ./install.sh --target ~/Dev-Projects/my-app --tool claude
+# (or 'atk install --tool claude' from inside my-app)
 
 # 2. Cursor (.cursor/rules/*.mdc, .cursorrules):
 ./install.sh --target ~/Dev-Projects/my-app --tool cursor
+# (or 'atk install --tool cursor' from inside my-app)
 
 # 3. GitHub Copilot (.github/copilot-instructions.md, .github/prompts/):
 ./install.sh --target ~/Dev-Projects/my-app --tool copilot
@@ -431,6 +448,10 @@ If you only use a specific AI assistant, you can install just its configuration:
 # 6. Google Antigravity & Gemini CLI (.agents/, AGENTS.md, GEMINI.md):
 ./install.sh --target ~/Dev-Projects/my-app --tool antigravity
 # (or ./install.sh --target ~/Dev-Projects/my-app --all)
+
+# 7. Global CLI & Repo Update Utilities:
+./install.sh --global       # Symlink 'atk' into ~/.local/bin
+./install.sh --update       # Pull latest toolkit updates from origin main
 ```
 
 To inspect all available skills, subagents, and supported assistants:
@@ -494,8 +515,24 @@ python3 .agents/skills/session-closer/scripts/sync_context.py --init
 
 ### 🔄 Updating `agent-toolkit` Across Projects
 
+You can update `agent-toolkit` at any time:
+
+#### Option 1: Using the Global CLI (Fastest):
+```bash
+# In your target project (or anywhere):
+atk update
+```
+*(This pulls the latest commits from `origin main` and automatically refreshes exported configurations if run inside a configured project).*
+
+#### Option 2: Using the Installer Script:
+```bash
+cd ~/Dev-Projects/agent-toolkit
+./install.sh --update
+```
+
+#### Manual Update by Mode:
 - **If you installed with `--mode symlink` (default):**
-  Simply pull the latest changes in your central `agent-toolkit` repository:
+  Pull the latest changes in your central `agent-toolkit` repository:
   ```bash
   cd ~/Dev-Projects/agent-toolkit
   git pull origin main
