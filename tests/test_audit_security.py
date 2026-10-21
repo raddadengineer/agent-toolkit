@@ -34,6 +34,16 @@ class TestAuditSecurity(unittest.TestCase):
             findings = audit_security.scan_file_for_sast(clean_file)
             self.assertEqual(len(findings), 0)
 
+    def test_powershell_sast_detection(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            pwsh_file = Path(tmpdir) / "script.ps1"
+            pwsh_file.write_text("Write-Host 'test'\nchmod 777 /tmp/test\n", encoding="utf-8")
+
+            findings = audit_security.scan_file_for_sast(pwsh_file)
+            self.assertTrue(len(findings) > 0)
+            rule_ids = [f["id"] for f in findings]
+            self.assertIn("SEC-PERM-777", rule_ids)
+
 
 if __name__ == "__main__":
     unittest.main()

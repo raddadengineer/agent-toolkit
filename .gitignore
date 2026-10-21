@@ -66,6 +66,22 @@ scratch/
 # Generated Context Maps & Transients
 REPO_MAP.md
 
+# Session Ledger & Local Working Files
+SESSION_LOG.md
+*.session.md
+SESSION_LOG.local.md
+.sync-context.json
+
+# Standalone Debugger Reproduction Harnesses
+repro.sh
+repro.py
+repro.ps1
+
+# AI Workspace Runtimes & Transients
+.gemini/
+.antigravity/
+.windsurf/
+
 # Local Agent Installations & Exported Tool Adapters
 .agents/
 .claude/
@@ -76,3 +92,4 @@ REPO_MAP.md
 .windsurfrules
 .github/prompts/
 .github/copilot-instructions.md
+

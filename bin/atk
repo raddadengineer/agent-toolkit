@@ -40,6 +40,8 @@ Optimization & Auditing:
   audit [opts]         Run SAST security and secret leak scan (audit_security.py)
   pr [opts]            Run pre-flight diff leak audit & PR description generator
   db [opts]            Verify database migration safety & rollback reversibility
+  debug [opts]         Root-cause analysis, repro script & automated git bisect
+  drift [opts]         Check documentation & schema drift sentinel (check_doc_drift.py)
 
 Toolkit Management:
   list                 List available skills, subagents, and AI assistants
@@ -65,8 +67,14 @@ setup_link() {
     mkdir -p "${target_dir}"
     ln -sf "${BIN_DIR}/atk" "${target_dir}/atk"
     ln -sf "${BIN_DIR}/atk" "${target_dir}/agent-toolkit"
+    if [ -f "${BIN_DIR}/atk.ps1" ]; then
+        ln -sf "${BIN_DIR}/atk.ps1" "${target_dir}/atk.ps1"
+        ln -sf "${BIN_DIR}/atk.ps1" "${target_dir}/agent-toolkit.ps1"
+    fi
     echo "✅ Successfully linked 'atk' and 'agent-toolkit' into ${target_dir}"
     echo "   Ensure ${target_dir} is in your PATH."
+
+    "${TOOLKIT_DIR}/install.sh" --powershell
 }
 
 if [ $# -eq 0 ]; then
@@ -142,6 +150,10 @@ case "${COMMAND}" in
     db|database)
         shift
         python3 "${TOOLKIT_DIR}/skills/database-engineer/scripts/verify_migrations.py" "$@"
+        ;;
+    debug|bisect|debugger)
+        shift
+        python3 "${TOOLKIT_DIR}/skills/debugger/scripts/bisect_debugger.py" "$@"
         ;;
     doc-check|drift)
         shift

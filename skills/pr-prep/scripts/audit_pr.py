@@ -26,7 +26,7 @@ from typing import Any, Dict, List, Optional, Tuple
 DEBUG_PATTERNS = [
     (r"\bconsole\.(log|debug|warn|trace)\s*\(", "console.log/debug statement"),
     (r"\bprint\s*\([\"'].*[\"']\)", "Python print debug statement"),
-    (r"\bdebugger\b", "JavaScript debugger breakpoint"),
+    (r"^\s*debugger\s*;?", "JavaScript debugger breakpoint"),
     (r"\bbinding\.pry\b", "Ruby debugger breakpoint"),
     (r"\bimport\s+pdb;\s*pdb\.set_trace\(\)", "Python pdb breakpoint"),
     (r"\bbreakpoint\s*\(\)", "Python breakpoint() call"),
@@ -115,9 +115,10 @@ def audit_diff(repo_root: Path, diff_args: List[str]) -> Dict[str, Any]:
 
         # Skip testing files for debug statement warnings (tests often legitimately inspect prints)
         is_test_file = any(t in current_file.lower() for t in ["test", "spec", "__tests__"])
+        is_doc_file = any(current_file.lower().endswith(ext) for ext in [".md", ".txt", ".rst", ".markdown"])
 
         # Check debug statements
-        if not is_test_file:
+        if not is_test_file and not is_doc_file:
             for pattern, desc in DEBUG_PATTERNS:
                 if re.search(pattern, added_text):
                     findings.append({

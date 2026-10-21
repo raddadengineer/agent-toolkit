@@ -51,6 +51,16 @@ class TestAtkCli(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("Unknown command: foobar_invalid", result.stdout)
 
+    def test_atk_debug_help(self):
+        result = subprocess.run([str(ATK_BIN), "debug", "--help"], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("Universal Root-Cause Debugger", result.stdout)
+
+    def test_atk_drift_check(self):
+        result = subprocess.run([str(ATK_BIN), "drift"], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("Documentation Drift Audit", result.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()

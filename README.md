@@ -12,8 +12,10 @@ Instead of recreating session scripts, agent definitions, and context rules acro
 agent-toolkit/
 ├── README.md                          # Documentation and comprehensive usage guide
 ├── bin/
-│   └── atk                            # Global CLI launcher (symlinked to ~/.local/bin/atk)
-├── install.sh                         # Multi-tool installer and symlink manager
+│   ├── atk                            # Global CLI launcher (Bash, symlinked to ~/.local/bin/atk)
+│   └── atk.ps1                        # Global CLI launcher (PowerShell)
+├── install.sh                         # Multi-tool installer and symlink manager (Bash)
+├── install.ps1                        # Multi-tool installer and symlink manager (PowerShell)
 ├── skills/
 │   ├── context-optimizer/             # Token optimization & AST context compression skill
 │   │   ├── SKILL.md                   # Token profiling & skeletonization workflow
@@ -65,6 +67,7 @@ agent-toolkit/
 │   └── mcp_config.json                # Native MCP suite: Playwright, GitHub, SQLite
 └── tests/
     ├── test_atk_cli.py                # Unit tests for bin/atk global CLI
+    ├── test_powershell_install.py     # Unit tests for PowerShell installer and bin/atk.ps1
     ├── test_sync_context.py           # Unit tests for sync_context.py
     ├── test_prime_session.py          # Unit tests for prime_session.py
     ├── test_audit_pr.py               # Unit tests for audit_pr.py
@@ -383,8 +386,11 @@ Clone this repository once to a central tools or development folder on your mach
 git clone https://github.com/raddadengineer/agent-toolkit.git ~/agent-toolkit
 cd ~/agent-toolkit
 
-# Enable global 'atk' CLI launcher into ~/.local/bin (Recommended):
+# For Bash / Zsh users (symlinks into ~/.local/bin and configures shell):
 ./install.sh --global
+
+# For PowerShell users (cross-platform pwsh or Windows PowerShell):
+.\install.ps1 -Global
 ```
 
 #### Step 2: Install into Your Target Project
@@ -450,27 +456,43 @@ If you only use a specific AI assistant, you can install just its configuration:
 # (or ./install.sh --target /path/to/my-project --all)
 
 # 7. Global CLI & Repo Update Utilities:
-./install.sh --global       # Symlink 'atk' into ~/.local/bin
+./install.sh --global       # Symlink 'atk' into ~/.local/bin and configure shell profiles
+./install.sh --powershell   # Explicitly configure PowerShell profile with 'atk' function
 ./install.sh --update       # Pull latest toolkit updates from origin main
+
+# PowerShell equivalents:
+.\install.ps1 -Global       # Install global 'atk' launcher & configure PowerShell profile
+.\install.ps1 -Update       # Pull latest updates and refresh configurations
 ```
 
 To inspect all available skills, subagents, and supported assistants:
 ```bash
-./install.sh --list
+./install.sh --list         # Or '.\install.ps1 -List' in PowerShell
 ```
 
 ---
 
 ### ⚡ Global Terminal CLI: `atk`
 
-`agent-toolkit` includes a unified global CLI launcher (`bin/atk`) that makes all skills, auditors, and installers accessible from **any** directory in your terminal without typing repository paths.
+`agent-toolkit` includes unified global CLI launchers (`bin/atk` for Bash/Zsh, `bin/atk.ps1` for PowerShell) that make all skills, auditors, and installers accessible from **any** directory in your terminal without typing repository paths.
 
 #### 1. Enable Global Access (One-time setup):
+
+**Bash / Zsh:**
 ```bash
 cd ~/agent-toolkit
 ./bin/atk link
+# (or ./install.sh --global)
 ```
-*(This symlinks `atk` and `agent-toolkit` directly into `~/.local/bin`, which is typically in your `$PATH`.)*
+*(This symlinks `atk` and `agent-toolkit` directly into `~/.local/bin`, and updates PowerShell profile if PowerShell is present).*
+
+**PowerShell (Windows, macOS, Linux):**
+```powershell
+cd ~/agent-toolkit
+.\install.ps1 -Global
+# (or pwsh ./bin/atk.ps1 link)
+```
+*(This links `atk.ps1` into `~/.local/bin` and idempotently configures your `$PROFILE` with native `atk` and `agent-toolkit` functions).*
 
 #### 2. Run Commands in Any Project:
 ```bash

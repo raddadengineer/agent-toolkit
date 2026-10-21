@@ -20,7 +20,12 @@ from typing import Any, Dict, List
 
 
 def get_repo_root() -> Path:
-    return Path(__file__).resolve().parent.parent
+    cur = Path(__file__).resolve().parent
+    while cur != cur.parent:
+        if (cur / ".git").exists() or ((cur / "skills").exists() and (cur / "agents").exists()):
+            return cur
+        cur = cur.parent
+    return Path.cwd().resolve()
 
 
 def check_documentation_drift(repo_root: Path) -> Dict[str, Any]:

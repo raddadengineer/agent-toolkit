@@ -39,6 +39,15 @@ ValueError: Invalid currency code"""
             content = Path(script).read_text(encoding="utf-8")
             self.assertIn("echo 'testing failure'", content)
 
+    def test_generate_reproduction_script_ps1(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_path = Path(tmpdir) / "repro.ps1"
+            script = bisect_debugger.generate_reproduction_script("Get-Process", str(out_path))
+            self.assertTrue(Path(script).exists())
+            content = Path(script).read_text(encoding="utf-8")
+            self.assertIn("Get-Process", content)
+            self.assertIn("#!/usr/bin/env pwsh", content)
+
 
 if __name__ == "__main__":
     unittest.main()

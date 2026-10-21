@@ -1,0 +1,18 @@
+# agent-toolkit — Session Log & Handover Ledger
+
+This ledger records engineering session summaries, completed features, architecture updates, and next steps to maintain continuity across development sessions.
+
+---
+
+### Session [YYYY-MM-DD HH:MM] — <Clear Title/Goal>
+
+- **Goal**:
+  - Concise statement of what the session aimed to achieve.
+- **Changes Completed**:
+  - Bulleted list of specific changes, additions, and refactors with file paths.
+- **Validation**:
+  - Concrete verification commands executed and results (tests, builds, linter runs).
+- **Next Steps / Handover**:
+  - High-priority follow-up tasks, unresolved questions, or upcoming milestones.
+
+---

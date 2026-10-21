@@ -36,6 +36,26 @@ class TestVerifyMigrations(unittest.TestCase):
             rule_ids = [f["id"] for f in findings]
             self.assertIn("MIG-LOCK-NON-CONCURRENT-INDEX", rule_ids)
 
+    def test_detect_drop_table(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            mig_file = Path(tmpdir) / "0003_drop_table.sql"
+            mig_file.write_text("DROP TABLE old_audit_logs;\n", encoding="utf-8")
+
+            findings = verify_migrations.audit_sql_migration(mig_file)
+            self.assertTrue(len(findings) > 0)
+            rule_ids = [f["id"] for f in findings]
+            self.assertIn("MIG-BREAK-DROP-TABLE", rule_ids)
+
+    def test_detect_alter_column_type(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            mig_file = Path(tmpdir) / "0004_alter_type.sql"
+            mig_file.write_text("ALTER TABLE orders ALTER COLUMN amount TYPE BIGINT;\n", encoding="utf-8")
+
+            findings = verify_migrations.audit_sql_migration(mig_file)
+            self.assertTrue(len(findings) > 0)
+            rule_ids = [f["id"] for f in findings]
+            self.assertIn("MIG-LOCK-ALTER-TYPE", rule_ids)
+
 
 if __name__ == "__main__":
     unittest.main()

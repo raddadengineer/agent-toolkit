@@ -26,6 +26,7 @@ INSTALL_ALL=false
 TARGET_TOOL=""
 LIST_ONLY=false
 INSTALL_GLOBAL=false
+INSTALL_POWERSHELL=false
 UPDATE_REPO=false
 
 print_usage() {
@@ -41,7 +42,8 @@ Options:
       --all                Install all available skills and agents (.agents/)
   -m, --mode <symlink|copy>
                            Installation mode (default: symlink)
-  -g, --global, --link     Install global 'atk' CLI launcher into ~/.local/bin
+  -g, --global, --link     Install global 'atk' CLI launcher into ~/.local/bin and configure shell profiles
+  -p, --powershell         Configure PowerShell profile with 'atk' and 'agent-toolkit' functions
   -u, --update             Pull latest toolkit updates from origin main
   -l, --list               List available skills and agents
   -h, --help               Display this help message
@@ -49,6 +51,7 @@ Options:
 Examples:
   $(basename "$0") --list
   $(basename "$0") --global
+  $(basename "$0") --powershell
   $(basename "$0") --update
   $(basename "$0") --target /path/to/my-project --tool all
   $(basename "$0") --target /path/to/my-project --tool claude
@@ -126,8 +129,76 @@ install_item() {
     fi
 }
 
+setup_powershell() {
+    local pwsh_bin=""
+    if command -v pwsh >/dev/null 2>&1; then
+        pwsh_bin="pwsh"
+    elif command -v powershell >/dev/null 2>&1; then
+        pwsh_bin="powershell"
+    fi
+
+    local profile_path=""
+    if [ -n "${pwsh_bin}" ]; then
+        profile_path=$(${pwsh_bin} -NoProfile -Command '$PROFILE' 2>/dev/null || echo "")
+    fi
+
+    if [ -z "${profile_path}" ]; then
+        if [ -d "${HOME}/.config/powershell" ] || [ "${INSTALL_POWERSHELL}" = true ]; then
+            profile_path="${HOME}/.config/powershell/Microsoft.PowerShell_profile.ps1"
+        else
+            return 0
+        fi
+    fi
+
+    local atk_ps1="${SCRIPT_DIR}/bin/atk.ps1"
+    if [ ! -f "${atk_ps1}" ]; then
+        atk_ps1="${SCRIPT_DIR}/bin/atk"
+    fi
+
+    local profile_dir="$(dirname "${profile_path}")"
+    mkdir -p "${profile_dir}"
+
+    local start_marker="# >>> agent-toolkit initialize >>>"
+    local end_marker="# <<< agent-toolkit initialize <<<"
+
+    python3 -c "
+import sys, re
+path = sys.argv[1]
+atk_script = sys.argv[2]
+start = sys.argv[3]
+end = sys.argv[4]
+
+block = f'''{start}
+function atk {{ & \"{atk_script}\" @args }}
+function agent-toolkit {{ & \"{atk_script}\" @args }}
+{end}'''
+
+content = ''
+try:
+    with open(path, 'r', encoding='utf-8') as f:
+        content = f.read()
+except FileNotFoundError:
+    pass
+
+pattern = re.escape(start) + r'.*?' + re.escape(end)
+if re.search(pattern, content, flags=re.DOTALL):
+    new_content = re.sub(pattern, block.strip(), content, flags=re.DOTALL)
+    print(f'🔄 Updated PowerShell profile: {path}')
+else:
+    if content.strip():
+        new_content = content.rstrip() + '\n\n' + block.strip() + '\n'
+    else:
+        new_content = block.strip() + '\n'
+    print(f'✅ Configured PowerShell profile: {path}')
+
+with open(path, 'w', encoding='utf-8') as f:
+    f.write(new_content)
+" "${profile_path}" "${atk_ps1}" "${start_marker}" "${end_marker}"
+}
+
 setup_global() {
     local bin_source="${SCRIPT_DIR}/bin/atk"
+    local bin_source_ps1="${SCRIPT_DIR}/bin/atk.ps1"
     local target_dir="${HOME}/.local/bin"
     if [ ! -f "${bin_source}" ]; then
         echo "❌ Global CLI launcher not found: ${bin_source}"
@@ -136,8 +207,14 @@ setup_global() {
     mkdir -p "${target_dir}"
     ln -sf "${bin_source}" "${target_dir}/atk"
     ln -sf "${bin_source}" "${target_dir}/agent-toolkit"
+    if [ -f "${bin_source_ps1}" ]; then
+        ln -sf "${bin_source_ps1}" "${target_dir}/atk.ps1"
+        ln -sf "${bin_source_ps1}" "${target_dir}/agent-toolkit.ps1"
+    fi
     echo "✅ Successfully installed global 'atk' and 'agent-toolkit' into ${target_dir}"
     echo "   Ensure ${target_dir} is in your PATH."
+
+    setup_powershell
 }
 
 while [[ $# -gt 0 ]]; do
@@ -170,6 +247,10 @@ while [[ $# -gt 0 ]]; do
             INSTALL_GLOBAL=true
             shift
             ;;
+        -p|--powershell)
+            INSTALL_POWERSHELL=true
+            shift
+            ;;
         -u|--update)
             UPDATE_REPO=true
             shift
@@ -194,13 +275,20 @@ if [ "${UPDATE_REPO}" = true ]; then
     echo "🔄 Updating agent-toolkit repository..."
     git -C "${SCRIPT_DIR}" pull origin main
     echo "✅ Repository updated."
-    if [ -z "${TARGET_TOOL}" ] && [ "${INSTALL_ALL}" = false ] && [ -z "${INSTALL_SKILL}" ] && [ -z "${INSTALL_AGENT}" ] && [ "${INSTALL_GLOBAL}" = false ]; then
+    if [ -z "${TARGET_TOOL}" ] && [ "${INSTALL_ALL}" = false ] && [ -z "${INSTALL_SKILL}" ] && [ -z "${INSTALL_AGENT}" ] && [ "${INSTALL_GLOBAL}" = false ] && [ "${INSTALL_POWERSHELL}" = false ]; then
         exit 0
     fi
 fi
 
 if [ "${INSTALL_GLOBAL}" = true ]; then
     setup_global
+    if [ -z "${TARGET_TOOL}" ] && [ "${INSTALL_ALL}" = false ] && [ -z "${INSTALL_SKILL}" ] && [ -z "${INSTALL_AGENT}" ] && [ "${INSTALL_POWERSHELL}" = false ]; then
+        exit 0
+    fi
+fi
+
+if [ "${INSTALL_POWERSHELL}" = true ]; then
+    setup_powershell
     if [ -z "${TARGET_TOOL}" ] && [ "${INSTALL_ALL}" = false ] && [ -z "${INSTALL_SKILL}" ] && [ -z "${INSTALL_AGENT}" ]; then
         exit 0
     fi

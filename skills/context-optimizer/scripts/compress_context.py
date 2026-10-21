@@ -77,6 +77,8 @@ DEFAULT_IGNORE_FILES = {
     "composer.lock",
     "poetry.lock",
     ".DS_Store",
+    "REPO_MAP.md",
+    "repo_map.md",
 }
 
 
@@ -410,8 +412,21 @@ def should_ignore(path: Path, repo_root: Path) -> bool:
 
 
 def scan_repository(repo_root: Path) -> List[Path]:
-    """Finds all non-ignored source files in the repository."""
+    """Finds all non-ignored source files in the repository, honoring .gitignore."""
     collected: List[Path] = []
+
+    # Check git repository first to honor .gitignore
+    git_output = run_git(["ls-files", "--cached", "--others", "--exclude-standard"], cwd=repo_root)
+    if git_output is not None:
+        for rel_path in git_output.splitlines():
+            rel_path = rel_path.strip()
+            if not rel_path:
+                continue
+            p = repo_root / rel_path
+            if p.is_file() and not should_ignore(p, repo_root):
+                collected.append(p)
+        return sorted(collected)
+
     for root, dirs, files in os.walk(repo_root):
         # In-place prune dirs
         dirs[:] = [d for d in dirs if d not in DEFAULT_IGNORE_DIRS and not d.startswith(".")]
@@ -498,6 +513,10 @@ def pack_repository(
         out_parts.append(f"# 📦 Repository Context Map: {repo_root.name} (Mode: {mode.upper()})\n")
 
     for f in files:
+        # Skip redundant context file mirrors if AGENTS.md is present
+        if f.name.lower() in ("claude.md", "gemini.md") and (repo_root / "AGENTS.md").exists():
+            continue
+
         rel_path = f.relative_to(repo_root)
         try:
             raw_content = f.read_text(encoding="utf-8", errors="ignore")

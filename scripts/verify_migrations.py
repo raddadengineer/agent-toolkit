@@ -38,6 +38,18 @@ HAZARDS = [
         "pattern": re.compile(r'DROP\s+COLUMN\s+', re.IGNORECASE),
     },
     {
+        "id": "MIG-BREAK-DROP-TABLE",
+        "severity": "HIGH",
+        "description": "DROP TABLE causes immediate breaking change for running services",
+        "pattern": re.compile(r'DROP\s+TABLE\s+', re.IGNORECASE),
+    },
+    {
+        "id": "MIG-LOCK-ALTER-TYPE",
+        "severity": "HIGH",
+        "description": "ALTER COLUMN TYPE causes full table rewrite with exclusive table lock",
+        "pattern": re.compile(r'ALTER\s+COLUMN\s+\w+\s+TYPE\s+', re.IGNORECASE),
+    },
+    {
         "id": "MIG-LOCK-RENAME",
         "severity": "MEDIUM",
         "description": "RENAME TABLE/COLUMN breaks active queries and requires phased migration",
