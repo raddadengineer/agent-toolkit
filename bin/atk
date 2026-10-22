@@ -33,15 +33,24 @@ Core Commands:
   check                Check SHA-256 sync status of context files
   status               Display status and checksums of tracked context files
 
-Optimization & Auditing:
+Optimization, Quality & Architecture:
   profile [opts]       Profile repository token consumption across files
   skeleton [file]      Generate AST skeleton without implementation bodies
   pack [opts]          Pack repo into hybrid high-density context map under token budget
+  review [opts]        Run adversarial code review on active diff (review_code.py)
+  test-gen [opts]      Scaffold deterministic tests & boundary matrix (scaffold_tests.py)
+  adr [opts]           Manage & audit Architecture Decision Records (manage_adr.py)
   audit [opts]         Run SAST security and secret leak scan (audit_security.py)
   pr [opts]            Run pre-flight diff leak audit & PR description generator
   db [opts]            Verify database migration safety & rollback reversibility
   debug [opts]         Root-cause analysis, repro script & automated git bisect
   drift [opts]         Check documentation & schema drift sentinel (check_doc_drift.py)
+
+DevOps, Release & Ecosystem:
+  docker [opts]        Scaffold & audit hardened Dockerfiles (harden_docker.py)
+  ci [opts]            Synthesize & audit CI/CD workflows (synthesize_ci.py)
+  dep [opts]           Audit dependencies for wildcards & deprecations (audit_deps.py)
+  release [opts]       Calculate semver bumps & draft release notes (manage_release.py)
 
 Toolkit Management:
   list                 List available skills, subagents, and AI assistants
@@ -139,6 +148,18 @@ case "${COMMAND}" in
         shift
         python3 "${TOOLKIT_DIR}/skills/context-optimizer/scripts/compress_context.py" --hybrid "$@"
         ;;
+    review|code-review)
+        shift
+        python3 "${TOOLKIT_DIR}/skills/code-reviewer/scripts/review_code.py" "$@"
+        ;;
+    test-gen|scaffold-tests)
+        shift
+        python3 "${TOOLKIT_DIR}/skills/test-engineer/scripts/scaffold_tests.py" "$@"
+        ;;
+    adr|architect)
+        shift
+        python3 "${TOOLKIT_DIR}/skills/system-architect/scripts/manage_adr.py" "$@"
+        ;;
     audit|security)
         shift
         python3 "${TOOLKIT_DIR}/skills/security-auditor/scripts/audit_security.py" "$@"
@@ -158,6 +179,22 @@ case "${COMMAND}" in
     doc-check|drift)
         shift
         python3 "${TOOLKIT_DIR}/skills/doc-sync/scripts/check_doc_drift.py" --dir . --check "$@"
+        ;;
+    docker|container)
+        shift
+        python3 "${TOOLKIT_DIR}/skills/container-engineer/scripts/harden_docker.py" "$@"
+        ;;
+    ci|pipeline)
+        shift
+        python3 "${TOOLKIT_DIR}/skills/ci-workflow/scripts/synthesize_ci.py" "$@"
+        ;;
+    dep|deps|dependencies)
+        shift
+        python3 "${TOOLKIT_DIR}/skills/dependency-auditor/scripts/audit_deps.py" "$@"
+        ;;
+    release)
+        shift
+        python3 "${TOOLKIT_DIR}/skills/release-manager/scripts/manage_release.py" "$@"
         ;;
     list)
         shift

@@ -84,6 +84,76 @@ class TestPowerShellInstall(unittest.TestCase):
         self.assertIn("Documentation Drift Audit", result.stdout)
 
     @unittest.skipIf(PWSH_BIN is None, "PowerShell (pwsh or powershell) not installed")
+    def test_atk_ps1_review(self):
+        result = subprocess.run(
+            [PWSH_BIN, "-NoProfile", str(ATK_PS1), "review", "--help"],
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("Automated Adversarial Code Reviewer", result.stdout)
+
+    @unittest.skipIf(PWSH_BIN is None, "PowerShell (pwsh or powershell) not installed")
+    def test_atk_ps1_test_gen(self):
+        result = subprocess.run(
+            [PWSH_BIN, "-NoProfile", str(ATK_PS1), "test-gen", "--help"],
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("Deterministic Test Suite & Boundary Matrix Generator", result.stdout)
+
+    @unittest.skipIf(PWSH_BIN is None, "PowerShell (pwsh or powershell) not installed")
+    def test_atk_ps1_adr(self):
+        result = subprocess.run(
+            [PWSH_BIN, "-NoProfile", str(ATK_PS1), "adr", "--help"],
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("Architecture Decision Record (ADR) Manager", result.stdout)
+
+    @unittest.skipIf(PWSH_BIN is None, "PowerShell (pwsh or powershell) not installed")
+    def test_atk_ps1_docker(self):
+        result = subprocess.run(
+            [PWSH_BIN, "-NoProfile", str(ATK_PS1), "docker", "--help"],
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("Container Hardening & Dockerfile Security Linter", result.stdout)
+
+    @unittest.skipIf(PWSH_BIN is None, "PowerShell (pwsh or powershell) not installed")
+    def test_atk_ps1_ci(self):
+        result = subprocess.run(
+            [PWSH_BIN, "-NoProfile", str(ATK_PS1), "ci", "--help"],
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("CI/CD Pipeline Synthesizer & Workflow Security Auditor", result.stdout)
+
+    @unittest.skipIf(PWSH_BIN is None, "PowerShell (pwsh or powershell) not installed")
+    def test_atk_ps1_dep(self):
+        result = subprocess.run(
+            [PWSH_BIN, "-NoProfile", str(ATK_PS1), "dep", "--help"],
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("Multi-Ecosystem Dependency Security & Manifest Auditor", result.stdout)
+
+    @unittest.skipIf(PWSH_BIN is None, "PowerShell (pwsh or powershell) not installed")
+    def test_atk_ps1_release(self):
+        result = subprocess.run(
+            [PWSH_BIN, "-NoProfile", str(ATK_PS1), "release", "--help"],
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("Semantic Versioning, Conventional Commits & Changelog Manager", result.stdout)
+
+    @unittest.skipIf(PWSH_BIN is None, "PowerShell (pwsh or powershell) not installed")
     def test_install_ps1_help(self):
         result = subprocess.run(
             [PWSH_BIN, "-NoProfile", str(INSTALL_PS1), "-Help"],

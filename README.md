@@ -256,23 +256,25 @@ A surgical, senior staff software engineer and Tech Lead orchestrator:
 - **Peer-Review Gate**: Automatically audits diffs via `code_reviewer` before completing multi-component work.
 - **Orchestrated Lifecycle**: `Analyze ──> Delegate/Research ──> Concurrent Dev & Tests ──> Peer Review Gate ──> Validate (Exit 0) ──> Report`.
 
-### 6. 🛡️ `code_reviewer` (Subagent)
-An adversarial, read-only senior code review persona:
+### 6. 🛡️ `code_reviewer` (Subagent) & `code-reviewer` (Skill)
+An adversarial, read-only senior code review persona and automated diff inspector (`review_code.py` / `atk review`):
 - **Read-only mandate**: Focuses purely on analysis, critique, and security without direct edits.
 - **5 Review Dimensions**: Security & Secrets, Concurrency & Thread Safety, Error Handling & Swallowing, Architecture & Scope, and Test Quality.
-- **Structured Output**: Delivers actionable verdicts (`APPROVE`, `REQUEST CHANGES`, `COMMENT`) with severity ratings (`CRITICAL`, `WARNING`, `NIT`).
+- **Automated Diff Inspection**: Detects silent error swallowing (`except: pass`), blocking sleep in async context, and missing test coverage.
+- **Structured Output**: Delivers actionable verdicts (`APPROVE`, `REQUEST CHANGES`) with severity ratings (`CRITICAL`, `WARNING`, `NIT`).
 
-### 7. 🧪 `test_engineer` (Subagent)
-A specialized quality and test automation subagent:
+### 7. 🧪 `test_engineer` (Subagent) & `test-engineer` (Skill)
+A specialized quality and test automation subagent and test suite scaffolder (`scaffold_tests.py` / `atk test-gen`):
 - **Flake-free determinism**: Employs condition-based polling and strict state isolation; bans arbitrary sleeps.
 - **Red-Green verification**: Proves bug reproduction by verifying tests fail before the fix and pass cleanly after.
-- **Comprehensive coverage**: Focuses on boundary conditions, malformed payloads, concurrent contention, and mocking at system boundaries.
+- **Comprehensive coverage**: Generates boundary coverage matrices and scaffolds deterministic `unittest` and `pytest` suites.
+- **Targeted Mocking**: Mocks external network and payment boundaries, never internal domain models.
 
-### 8. 📐 `system_architect` (Subagent)
-A principal systems architecture and technical planning subagent:
+### 8. 📐 `system_architect` (Subagent) & `system-architect` (Skill)
+A principal systems architecture, schema modeling, and Architecture Decision Record (ADR) manager (`manage_adr.py` / `atk adr`):
 - **Read-only design posture**: Inspects dependency structures, module interfaces, and data models without premature code edits.
 - **Contract & schema design**: Formulates strongly-typed schemas, interface boundaries, and backwards-compatible migrations.
-- **Architectural Decision Records (ADRs)**: Documents problem statements, evaluated alternatives, and trade-off rationales.
+- **ADR Management**: Initializes, creates, indexes, and audits Architecture Decision Records in `docs/adr/` with Michael Nygard templates.
 
 ### 9. ⚡ `context_optimizer` (Subagent & Skill)
 A specialized token optimization and AST context compression subagent:
@@ -303,12 +305,32 @@ A documentation and schema drift sentinel:
 - **Drift Detection**: Verifies that documented skills, subagents, and slash commands match actual disk contents.
 - **Broken Link Verification**: Flags broken internal markdown links across repository guides.
 
-### 14. 🪝 Lifecycle Hooks & Auto-Formatters (`hooks.json`)
+### 14. 🐳 `container-engineer` (Skill)
+Production containerization and Dockerfile hardening (`harden_docker.py` / `atk docker`):
+- **Multi-Stage Scaffolding**: Generates minimal, non-root, multi-stage Dockerfiles and `.dockerignore` files for Python, Node, Go, and Rust.
+- **Security & Caching Auditing**: Flags root user execution (`DOCKER-ROOT-USER`), unpinned `:latest` tags, baked secrets, and cache-busting `COPY . .` commands.
+
+### 15. 🔄 `ci-workflow` (Skill)
+CI/CD pipeline synthesizer and workflow security sentinel (`synthesize_ci.py` / `atk ci`):
+- **Pipeline Synthesis**: Scaffolds GitHub Actions workflows (`.github/workflows/ci.yml`) wired to test matrices, security checks, and context synchronizers.
+- **Supply-Chain Auditing**: Scans workflows for unpinned `@main` actions, missing job timeouts, and overly permissive default tokens.
+
+### 16. 📦 `dependency-auditor` (Skill)
+Multi-ecosystem dependency security scanner and manifest auditor (`audit_deps.py` / `atk dep`):
+- **Wildcard Detection**: Catches dangerous wildcard dependencies (`*`, `latest`) in Python, Node, Go, and Rust.
+- **Hygiene & Deprecation**: Flags missing lockfiles, unpinned packages, and known deprecated libraries.
+
+### 17. 🚀 `release-manager` (Skill)
+Semantic versioning and Conventional Commits changelog manager (`manage_release.py` / `atk release`):
+- **SemVer Calculation**: Analyzes commit history since the last tag and recommends major, minor, or patch version bumps.
+- **Changelog & Notes**: Automatically compiles `CHANGELOG.md` sections and drafts GitHub Release notes.
+
+### 18. 🪝 Lifecycle Hooks & Auto-Formatters (`hooks.json`)
 Native Antigravity lifecycle hooks:
 - **`PreToolUse` Safety Guard**: Inspects shell commands before execution and blocks destructive actions (`rm -rf /`, force pushes to `main`, disk overwrites).
 - **`PostToolUse` Auto-Formatter**: Runs language formatters (`ruff`, `prettier`, `swiftformat`, `gofmt`) automatically on modified files.
 
-### 15. 🔌 Native MCP Suite (`mcp_config.json`)
+### 19. 🔌 Native MCP Suite (`mcp_config.json`)
 Pre-packaged Model Context Protocol servers:
 - **Playwright**: Headless browser automation, visual inspection, and live DOM testing.
 - **GitHub**: Remote CI/CD log inspection (`gh run view`), issue lookup, and PR review triage.
@@ -508,6 +530,13 @@ atk install --mode copy
 # Daily development workflow shortcuts:
 atk start        # Prime workspace and ingest recent handover notes
 atk profile      # Analyze token hotspots across files
+atk review       # Run adversarial code review on active diff (review_code.py)
+atk test-gen     # Scaffold deterministic unit tests & boundary matrix (scaffold_tests.py)
+atk adr list     # List recorded Architecture Decision Records (manage_adr.py)
+atk docker audit # Audit Dockerfile for security & layer-caching hazards (harden_docker.py)
+atk ci audit     # Audit CI workflows for unpinned actions & permissions (synthesize_ci.py)
+atk dep audit    # Audit dependencies for wildcards & deprecations (audit_deps.py)
+atk release bump # Calculate next SemVer bump from Conventional Commits (manage_release.py)
 atk audit        # Scan diff and codebase for security/credential leaks
 atk pr           # Audit diff and generate ready-to-copy PR description
 atk sync         # Synchronize AGENTS.md, CLAUDE.md, and GEMINI.md

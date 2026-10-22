@@ -73,15 +73,24 @@ Core Commands:
   check                Check SHA-256 sync status of context files
   status               Display status and checksums of tracked context files
 
-Optimization & Auditing:
+Optimization, Quality & Architecture:
   profile [opts]       Profile repository token consumption across files
   skeleton [file]      Generate AST skeleton without implementation bodies
   pack [opts]          Pack repo into hybrid high-density context map under token budget
+  review [opts]        Run adversarial code review on active diff (review_code.py)
+  test-gen [opts]      Scaffold deterministic tests & boundary matrix (scaffold_tests.py)
+  adr [opts]           Manage & audit Architecture Decision Records (manage_adr.py)
   audit [opts]         Run SAST security and secret leak scan (audit_security.py)
   pr [opts]            Run pre-flight diff leak audit & PR description generator
   db [opts]            Verify database migration safety & rollback reversibility
   debug [opts]         Root-cause analysis, repro script & automated git bisect
   drift [opts]         Check documentation & schema drift sentinel (check_doc_drift.py)
+
+DevOps, Release & Ecosystem:
+  docker [opts]        Scaffold & audit hardened Dockerfiles (harden_docker.py)
+  ci [opts]            Synthesize & audit CI/CD workflows (synthesize_ci.py)
+  dep [opts]           Audit dependencies for wildcards & deprecations (audit_deps.py)
+  release [opts]       Calculate semver bumps & draft release notes (manage_release.py)
 
 Toolkit Management:
   list                 List available skills, subagents, and AI assistants
@@ -184,6 +193,18 @@ switch ($Command) {
         $script = Join-Path $ToolkitDir "skills/context-optimizer/scripts/compress_context.py"
         & $py $script --hybrid @RemainingArgs
     }
+    { $_ -in @('review', 'code-review') } {
+        $script = Join-Path $ToolkitDir "skills/code-reviewer/scripts/review_code.py"
+        & $py $script @RemainingArgs
+    }
+    { $_ -in @('test-gen', 'scaffold-tests') } {
+        $script = Join-Path $ToolkitDir "skills/test-engineer/scripts/scaffold_tests.py"
+        & $py $script @RemainingArgs
+    }
+    { $_ -in @('adr', 'architect') } {
+        $script = Join-Path $ToolkitDir "skills/system-architect/scripts/manage_adr.py"
+        & $py $script @RemainingArgs
+    }
     { $_ -in @('audit', 'security') } {
         $script = Join-Path $ToolkitDir "skills/security-auditor/scripts/audit_security.py"
         & $py $script @RemainingArgs
@@ -203,6 +224,22 @@ switch ($Command) {
     { $_ -in @('doc-check', 'drift') } {
         $script = Join-Path $ToolkitDir "skills/doc-sync/scripts/check_doc_drift.py"
         & $py $script --dir . --check @RemainingArgs
+    }
+    { $_ -in @('docker', 'container') } {
+        $script = Join-Path $ToolkitDir "skills/container-engineer/scripts/harden_docker.py"
+        & $py $script @RemainingArgs
+    }
+    { $_ -in @('ci', 'pipeline') } {
+        $script = Join-Path $ToolkitDir "skills/ci-workflow/scripts/synthesize_ci.py"
+        & $py $script @RemainingArgs
+    }
+    { $_ -in @('dep', 'deps', 'dependencies') } {
+        $script = Join-Path $ToolkitDir "skills/dependency-auditor/scripts/audit_deps.py"
+        & $py $script @RemainingArgs
+    }
+    'release' {
+        $script = Join-Path $ToolkitDir "skills/release-manager/scripts/manage_release.py"
+        & $py $script @RemainingArgs
     }
     'list' {
         $installScript = Join-Path $ToolkitDir "install.ps1"

@@ -61,6 +61,41 @@ class TestAtkCli(unittest.TestCase):
         self.assertEqual(result.returncode, 0)
         self.assertIn("Documentation Drift Audit", result.stdout)
 
+    def test_atk_review_command(self):
+        result = subprocess.run([str(ATK_BIN), "review", "--help"], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("Automated Adversarial Code Reviewer", result.stdout)
+
+    def test_atk_test_gen_command(self):
+        result = subprocess.run([str(ATK_BIN), "test-gen", "--help"], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("Deterministic Test Suite & Boundary Matrix Generator", result.stdout)
+
+    def test_atk_adr_command(self):
+        result = subprocess.run([str(ATK_BIN), "adr", "--help"], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("Architecture Decision Record (ADR) Manager", result.stdout)
+
+    def test_atk_docker_command(self):
+        result = subprocess.run([str(ATK_BIN), "docker", "--help"], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("Container Hardening & Dockerfile Security Linter", result.stdout)
+
+    def test_atk_ci_command(self):
+        result = subprocess.run([str(ATK_BIN), "ci", "--help"], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("CI/CD Pipeline Synthesizer & Workflow Security Auditor", result.stdout)
+
+    def test_atk_dep_command(self):
+        result = subprocess.run([str(ATK_BIN), "dep", "--help"], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("Multi-Ecosystem Dependency Security & Manifest Auditor", result.stdout)
+
+    def test_atk_release_command(self):
+        result = subprocess.run([str(ATK_BIN), "release", "--help"], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("Semantic Versioning, Conventional Commits & Changelog Manager", result.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()

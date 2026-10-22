@@ -14,9 +14,16 @@ Welcome to `agent-toolkit`, a centralized library of reusable skills, specialize
   - `session-closer/`: Handover workflow, context file synchronizer, and session ledger manager.
   - `context-optimizer/`: Token heatmap profiler and AST code skeletonizer (85–95% token savings).
   - `pr-prep/`: Pre-flight git diff auditor (secrets/debug logs) and PR markdown generator.
+  - `code-reviewer/`: Adversarial diff auditor, error swallowing detector, and structured review verdicts.
+  - `test-engineer/`: Deterministic test suite scaffolder, boundary coverage matrices, and mock fixtures.
+  - `system-architect/`: Architecture Decision Record (ADR) manager, interface contracts, and boundary sentinel.
   - `debugger/`: Standalone reproduction harnesses (`repro.sh`) and automated git bisection.
   - `security-auditor/`: SAST vulnerability scanning and dependency hazard auditor.
   - `database-engineer/`: Reversible migration proof and zero-downtime DDL safety validator.
+  - `container-engineer/`: Multi-stage Dockerfile scaffolding and security/caching linter.
+  - `ci-workflow/`: Pipeline synthesizer (GitHub Actions) and workflow security auditor.
+  - `dependency-auditor/`: Multi-ecosystem manifest auditor for wildcards and deprecations.
+  - `release-manager/`: Semantic versioning calculator and Conventional Commits changelog generator.
   - `doc-sync/`: Filesystem vs documentation drift and broken link sentinel.
 - `agents/`: Specialized subagent system prompts, persona configurations, and capability definitions.
 - `scripts/`: Multi-tool configuration compilers (`export_adapters.py`), context compressors, hooks, and validators.
