@@ -96,6 +96,45 @@ class TestAtkCli(unittest.TestCase):
         self.assertEqual(result.returncode, 0)
         self.assertIn("Semantic Versioning, Conventional Commits & Changelog Manager", result.stdout)
 
+    def test_atk_installs_command(self):
+        result = subprocess.run([str(ATK_BIN), "installs", "--help"], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("Manage agent-toolkit project installation registry", result.stdout)
+
+    def test_atk_update_all_flow(self):
+        custom_reg = self.target / "custom_installs.json"
+        env = dict(os.environ, AGENT_TOOLKIT_REGISTRY=str(custom_reg))
+
+        # 1. Install into target
+        install_res = subprocess.run(
+            [str(ATK_BIN), "install", "--target", str(self.target), "--tool", "claude"],
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+        self.assertEqual(install_res.returncode, 0)
+
+        # 2. Check installs listing
+        list_res = subprocess.run(
+            [str(ATK_BIN), "installs"],
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+        self.assertEqual(list_res.returncode, 0)
+        self.assertIn(str(self.target.resolve()), list_res.stdout)
+
+        # 3. Test atk update --all
+        update_res = subprocess.run(
+            [str(ATK_BIN), "update", "--all"],
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+        self.assertEqual(update_res.returncode, 0)
+        self.assertIn("Updated:", update_res.stdout)
+        self.assertIn(str(self.target.resolve()), update_res.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()

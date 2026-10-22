@@ -802,6 +802,16 @@ def main():
         for f in files:
             print(f"   • {f}")
 
+    # Automatically register project in agent-toolkit registry
+    try:
+        try:
+            from scripts.manage_installs import register_project
+        except ImportError:
+            from manage_installs import register_project
+        register_project(target_dir, tool=args.tool, mode=args.mode)
+    except Exception as exc:
+        sys.stderr.write(f"⚠️ Warning: Could not register project in installation registry: {exc}\n")
+
     print("\n✨ Multi-tool setup complete.")
 
 

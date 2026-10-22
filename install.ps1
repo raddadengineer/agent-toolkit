@@ -329,6 +329,10 @@ if ($Tool) {
     }
     $py = Get-Python
     & $py $ExportScript --target $Target --tool $Tool --mode $Mode
+    $manageScript = Join-Path $ScriptDir "scripts/manage_installs.py"
+    if (Test-Path $manageScript) {
+        & $py $manageScript --register $Target --tool $Tool --mode $Mode 2>$null
+    }
     exit 0
 }
 
@@ -361,6 +365,12 @@ if ($All) {
     $scriptsFolder = Join-Path $ScriptDir "scripts"
     if (Test-Path $scriptsFolder) {
         Install-Item -Src $scriptsFolder -DestDir $TargetAgentsDir -Name "scripts"
+    }
+
+    $manageScript = Join-Path $ScriptDir "scripts/manage_installs.py"
+    if (Test-Path $manageScript) {
+        $py = Get-Python
+        & $py $manageScript --register $Target --tool "antigravity" --mode $Mode 2>$null
     }
 
     Write-Host "✅ Successfully installed all components to $Target/.agents"

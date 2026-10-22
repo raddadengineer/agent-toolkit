@@ -264,6 +264,31 @@ $endMarker
         self.assertEqual(result.returncode, 0)
         self.assertIn("agent-toolkit (atk) v1.0.0", result.stdout)
 
+    def test_atk_ps1_installs_and_update_all(self):
+        target_dir = Path(self.test_dir) / "pwsh_project"
+        target_dir.mkdir()
+        custom_reg = Path(self.test_dir) / "pwsh_installs.json"
+
+        env = dict(os.environ, AGENT_TOOLKIT_REGISTRY=str(custom_reg))
+
+        # 1. Install via atk.ps1
+        install_cmd = f"& '{ATK_PS1.as_posix()}' install -Target '{target_dir.as_posix()}' -Tool claude"
+        res_inst = subprocess.run([PWSH_BIN, "-NoProfile", "-Command", install_cmd], capture_output=True, text=True, env=env)
+        self.assertEqual(res_inst.returncode, 0)
+
+        # 2. Check installs listing
+        list_cmd = f"& '{ATK_PS1.as_posix()}' installs"
+        res_list = subprocess.run([PWSH_BIN, "-NoProfile", "-Command", list_cmd], capture_output=True, text=True, env=env)
+        self.assertEqual(res_list.returncode, 0)
+        self.assertIn(str(target_dir.resolve()), res_list.stdout)
+
+        # 3. Update all via atk.ps1 update -All
+        update_cmd = f"& '{ATK_PS1.as_posix()}' update -All"
+        res_upd = subprocess.run([PWSH_BIN, "-NoProfile", "-Command", update_cmd], capture_output=True, text=True, env=env)
+        self.assertEqual(res_upd.returncode, 0)
+        self.assertIn("Updated:", res_upd.stdout)
+        self.assertIn(str(target_dir.resolve()), res_upd.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()

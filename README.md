@@ -570,10 +570,16 @@ You can update `agent-toolkit` at any time:
 
 #### Option 1: Using the Global CLI (Fastest):
 ```bash
-# In your target project (or anywhere):
+# Refresh current project:
 atk update
+
+# Or refresh ALL registered project installations across your system at once:
+atk update --all
+
+# Inspect all registered project installations:
+atk installs
 ```
-*(This pulls the latest commits from `origin main` and automatically refreshes exported configurations if run inside a configured project).*
+*(Every time you run `atk install` in a repository, it is automatically recorded in `~/.agent-toolkit/installs.json`. Running `atk update --all` pulls latest commits from `origin main` and automatically updates configurations across all registered projects in one shot).*
 
 #### Option 2: Using the Installer Script:
 ```bash

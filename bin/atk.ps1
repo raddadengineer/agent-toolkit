@@ -94,7 +94,8 @@ DevOps, Release & Ecosystem:
 
 Toolkit Management:
   list                 List available skills, subagents, and AI assistants
-  update               Pull latest toolkit updates and refresh current project
+  installs             List all registered project installations across the system
+  update [-All]        Pull latest toolkit updates (use -All to refresh all projects)
   test                 Run the test suite across all toolkit components
   link                 Configure PowerShell profile and global launcher
   version              Show current agent-toolkit version & directory
@@ -143,12 +144,12 @@ switch ($Command) {
             }
         }
         $currentDir = (Get-Location).Path
-        if ($RemainingArgs.Count -eq 0) {
+        if (-not $RemainingArgs -or $RemainingArgs.Count -eq 0) {
             & $installScript -Target $currentDir -Tool all
-        } elseif (-not $hasTarget) {
-            & $installScript -Target $currentDir @RemainingArgs
         } else {
-            & $installScript @RemainingArgs
+            $targetArg = if (-not $hasTarget) { "-Target '$currentDir'" } else { "" }
+            $argString = ($RemainingArgs | ForEach-Object { if ($_ -match '[\s\$\`]') { "'$_'" } else { $_ } }) -join ' '
+            Invoke-Expression "& '$installScript' $targetArg $argString"
         }
     }
     { $_ -in @('start', 'prime', 'session-starter') } {
@@ -245,14 +246,35 @@ switch ($Command) {
         $installScript = Join-Path $ToolkitDir "install.ps1"
         & $installScript -List
     }
+    { $_ -in @('installs', 'list-installs', 'registry') } {
+        $manageScript = Join-Path $ToolkitDir "scripts/manage_installs.py"
+        & $py $manageScript --list @RemainingArgs
+    }
     'update' {
+        $updateAll = $false
+        $remaining = @()
+        foreach ($arg in $RemainingArgs) {
+            if ($arg -in @('--all', '-a', '-All')) {
+                $updateAll = $true
+            } else {
+                $remaining += $arg
+            }
+        }
+
         Write-Host "🔄 Updating agent-toolkit repository..."
         git -C $ToolkitDir pull origin main
         Write-Host "✅ Toolkit repository updated."
-        if ((Test-Path ".agents") -or (Test-Path ".claude") -or (Test-Path ".cursor") -or (Test-Path ".github")) {
-            Write-Host "📦 Refreshing configurations in current project..."
-            $installScript = Join-Path $ToolkitDir "install.ps1"
-            & $installScript -Target (Get-Location).Path -Tool all @RemainingArgs
+
+        $manageScript = Join-Path $ToolkitDir "scripts/manage_installs.py"
+        if ($updateAll) {
+            & $py $manageScript --update-all
+        } else {
+            if ((Test-Path ".agents") -or (Test-Path ".claude") -or (Test-Path ".cursor") -or (Test-Path ".github")) {
+                Write-Host "📦 Refreshing configurations in current project..."
+                $installScript = Join-Path $ToolkitDir "install.ps1"
+                & $installScript -Target (Get-Location).Path -Tool all @remaining
+            }
+            & $py $manageScript --hint-summary 2>$null
         }
     }
     'test' {

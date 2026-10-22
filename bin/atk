@@ -54,7 +54,8 @@ DevOps, Release & Ecosystem:
 
 Toolkit Management:
   list                 List available skills, subagents, and AI assistants
-  update               Pull latest toolkit updates and refresh current project
+  installs             List all registered project installations across the system
+  update [--all]       Pull latest toolkit updates (use --all to refresh all projects)
   test                 Run the test suite across all toolkit components
   link                 Symlink 'atk' and 'agent-toolkit' into ~/.local/bin
   version              Show current agent-toolkit version & directory
@@ -200,14 +201,34 @@ case "${COMMAND}" in
         shift
         "${TOOLKIT_DIR}/install.sh" --list
         ;;
+    installs|registry)
+        shift
+        python3 "${TOOLKIT_DIR}/scripts/manage_installs.py" --list "$@"
+        ;;
     update)
         shift
+        update_all=false
+        remaining_args=()
+        for arg in "$@"; do
+            if [ "$arg" = "--all" ] || [ "$arg" = "-a" ]; then
+                update_all=true
+            else
+                remaining_args+=("$arg")
+            fi
+        done
+
         echo "🔄 Updating agent-toolkit repository..."
         git -C "${TOOLKIT_DIR}" pull origin main
         echo "✅ Toolkit repository updated."
-        if [ -d ".agents" ] || [ -d ".claude" ] || [ -d ".cursor" ] || [ -d ".github" ]; then
-            echo "📦 Refreshing configurations in current project..."
-            "${TOOLKIT_DIR}/install.sh" --target "$(pwd)" --tool all "$@"
+
+        if [ "$update_all" = true ]; then
+            python3 "${TOOLKIT_DIR}/scripts/manage_installs.py" --update-all
+        else
+            if [ -d ".agents" ] || [ -d ".claude" ] || [ -d ".cursor" ] || [ -d ".github" ]; then
+                echo "📦 Refreshing configurations in current project..."
+                "${TOOLKIT_DIR}/install.sh" --target "$(pwd)" --tool all "${remaining_args[@]}"
+            fi
+            python3 "${TOOLKIT_DIR}/scripts/manage_installs.py" --hint-summary 2>/dev/null || true
         fi
         ;;
     test)
