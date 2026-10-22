@@ -97,7 +97,7 @@ COMMAND="$1"
 case "${COMMAND}" in
     install)
         shift
-        if [ "$1" = "--all-projects" ]; then
+        if [ "${1:-}" = "--all-projects" ]; then
             python3 "${TOOLKIT_DIR}/scripts/manage_installs.py" --update-all
             exit $?
         fi
