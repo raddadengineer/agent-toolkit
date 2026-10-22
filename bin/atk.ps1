@@ -131,6 +131,11 @@ $py = Get-Python
 
 switch ($Command) {
     'install' {
+        if ($RemainingArgs -and $RemainingArgs[0] -in @('--all-projects', '-AllProjects')) {
+            $manageScript = Join-Path $ToolkitDir "scripts/manage_installs.py"
+            & $py $manageScript --update-all
+            exit $LASTEXITCODE
+        }
         $installScript = Join-Path $ToolkitDir "install.ps1"
         if (-not (Test-Path $installScript)) {
             Write-Error "❌ install.ps1 not found in $ToolkitDir"

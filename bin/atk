@@ -97,6 +97,10 @@ COMMAND="$1"
 case "${COMMAND}" in
     install)
         shift
+        if [ "$1" = "--all-projects" ]; then
+            python3 "${TOOLKIT_DIR}/scripts/manage_installs.py" --update-all
+            exit $?
+        fi
         if [ $# -eq 0 ]; then
             "${TOOLKIT_DIR}/install.sh" --target "$(pwd)" --tool all
         else
