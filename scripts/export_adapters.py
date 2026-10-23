@@ -74,6 +74,12 @@ class AdapterExporter:
         self.db_standards = read_file_safe(
             toolkit_dir / "agents" / "database_engineer" / "rules" / "database-standards.md"
         )
+        self.devops_standards = read_file_safe(
+            toolkit_dir / "agents" / "devops_engineer" / "rules" / "devops-standards.md"
+        )
+        self.research_standards = read_file_safe(
+            toolkit_dir / "agents" / "research" / "rules" / "research-standards.md"
+        )
 
     # --------------------------------------------------------------------------
     # 1. Claude Code
@@ -197,6 +203,39 @@ Execute the Universal Documentation Drift Sentinel procedure:
 1. Run `python3 scripts/check_doc_drift.py --check`.
 2. Verify all agents, skills, and tools on disk are accurately documented.
 3. Fix any broken internal markdown references or missing descriptions.
+""",
+            "container-engineer.md": """---
+description: Scaffold hardened multi-stage Dockerfiles and audit container security & layer caching
+---
+
+Execute the Universal Container Engineer procedure:
+1. Run `python3 scripts/harden_docker.py --audit --check` to inspect existing Dockerfiles.
+2. Or scaffold a hardened, non-root, multi-stage Dockerfile via `python3 scripts/harden_docker.py --init --stack <python|node|go|rust>`.
+3. Verify zero `:latest` base image tags, no baked secrets, and deterministic dependency layer caching.
+""",
+            "ci-workflow.md": """---
+description: Synthesize hardened GitHub Actions CI pipelines and audit workflow security
+---
+
+Execute the Universal CI/CD Workflow Engineer procedure:
+1. Run `python3 scripts/synthesize_ci.py --audit --check` to scan `.github/workflows/` for unpinned actions, missing timeouts, and broad permissions.
+2. Or scaffold a hardened pipeline via `python3 scripts/synthesize_ci.py --init --stack <python|node|go|rust>`.
+""",
+            "dependency-audit.md": """---
+description: Audit multi-ecosystem dependency manifests for wildcards, missing lockfiles, and deprecations
+---
+
+Execute the Universal Dependency Auditor procedure:
+1. Run `python3 scripts/audit_deps.py --check` across the repository.
+2. Remediate any wildcard version specifiers (`*`, `latest`), deprecated packages, or missing lockfiles.
+""",
+            "release-manager.md": """---
+description: Calculate SemVer version bumps from Conventional Commits and generate CHANGELOG.md
+---
+
+Execute the Universal Release Manager procedure:
+1. Run `python3 scripts/manage_release.py --bump` to calculate the next Semantic Version from git commit history.
+2. Run `python3 scripts/manage_release.py --changelog` or `--notes` to update `CHANGELOG.md` and draft GitHub release notes.
 """,
         }
 
@@ -355,6 +394,53 @@ alwaysApply: false
 
 Ensure all agents, skills, and commands are accurately documented without broken internal references.
 """,
+            "container-engineer.mdc": f"""---
+description: Container Hardening, Multi-Stage Dockerfiles & Layer Caching Standards
+globs: Dockerfile*,*.dockerfile,.dockerignore,docker-compose*.yml
+alwaysApply: false
+---
+
+# Container & Dockerfile Hardening Standards
+
+When authoring or auditing Dockerfiles and container configurations:
+
+{self.devops_standards.strip()}
+""",
+            "ci-workflow.mdc": f"""---
+description: CI/CD Pipeline Synthesis & GitHub Actions Security Standards
+globs: .github/workflows/*.yml,.github/workflows/*.yaml
+alwaysApply: false
+---
+
+# CI/CD Workflow Security Standards
+
+When authoring or auditing CI/CD pipelines:
+
+{self.devops_standards.strip()}
+""",
+            "dependency-auditor.mdc": """---
+description: Multi-Ecosystem Dependency Manifest Hygiene & Security Standards
+globs: package.json,pyproject.toml,requirements*.txt,Cargo.toml,go.mod
+alwaysApply: false
+---
+
+# Dependency Hygiene Standards
+
+- Ban wildcard version specifiers (`*`, `latest`) in manifests.
+- Commit deterministic lockfiles (`package-lock.json`, `Cargo.lock`, `go.sum`, `poetry.lock`).
+- Replace deprecated libraries with actively maintained alternatives.
+""",
+            "release-manager.mdc": """---
+description: Semantic Versioning & Conventional Commits Release Standards
+globs: CHANGELOG.md
+alwaysApply: false
+---
+
+# Release Management Standards
+
+- Derive version bumps (`major`, `minor`, `patch`) deterministically from Conventional Commits (`feat`, `fix`, `perf`, `BREAKING CHANGE`).
+- Keep `CHANGELOG.md` structured under Keep a Changelog sections (`Added`, `Fixed`, `Changed`, `Breaking Changes`).
+""",
         }
 
         for filename, content in rules.items():
@@ -471,6 +557,34 @@ description: Verify documentation consistency and detect broken internal links
 ---
 
 Scan documentation for drift against codebase reality and verify that all internal markdown references resolve correctly.
+""",
+            "container-engineer.prompt.md": """---
+name: container-engineer
+description: Scaffold hardened multi-stage Dockerfiles and audit container security
+---
+
+Act as a principal container engineer. Audit Dockerfiles for non-root execution, pinned image tags, secret hygiene, and optimal layer caching.
+""",
+            "ci-workflow.prompt.md": """---
+name: ci-workflow
+description: Synthesize hardened GitHub Actions workflows and audit pipeline security
+---
+
+Act as a CI/CD security engineer. Scaffold or audit GitHub Actions pipelines for explicit read-all permissions, pinned action versions, and job timeouts.
+""",
+            "dependency-audit.prompt.md": """---
+name: dependency-audit
+description: Audit dependency manifests for wildcards, missing lockfiles, and deprecations
+---
+
+Scan dependency manifests across Python, Node, Go, and Rust for wildcard version specifiers, deprecated packages, and lockfile hygiene.
+""",
+            "release-manager.prompt.md": """---
+name: release-manager
+description: Calculate SemVer version bumps and generate Conventional Commits changelogs
+---
+
+Analyze git commit history since the latest tag to determine the next Semantic Version bump and compile structured CHANGELOG.md release notes.
 """,
         }
 
@@ -595,6 +709,32 @@ Scan documentation for drift against codebase reality and verify that all intern
                     "customInstructions": (
                         "Every migration must have a tested downgrade routine. Never add NOT NULL columns without default. "
                         "Ensure indexes are built concurrently."
+                    ),
+                },
+                {
+                    "slug": "devops-engineer",
+                    "name": "DevOps & Release Engineer",
+                    "roleDefinition": (
+                        "Principal DevOps, container, CI/CD, and release engineer responsible for multi-stage Dockerfile "
+                        "hardening, GitHub Actions pipeline synthesis, dependency manifest auditing, and SemVer releases."
+                    ),
+                    "groups": ["read", "edit", "command"],
+                    "customInstructions": (
+                        "Enforce non-root container execution, pinned image and action versions, explicit CI permissions, "
+                        "zero wildcard dependencies, and Conventional Commits SemVer releases."
+                    ),
+                },
+                {
+                    "slug": "research",
+                    "name": "Technical Researcher",
+                    "roleDefinition": (
+                        "Technical research and documentation sandbox specialist ingesting external API docs, "
+                        "SDK specifications, and changelogs into concise engineering briefs."
+                    ),
+                    "groups": ["read", "command"],
+                    "customInstructions": (
+                        "Read-only sandbox posture. Verify installed library versions before researching. "
+                        "Distill external docs into exact signatures, minimal working snippets, and citations."
                     ),
                 },
             ]

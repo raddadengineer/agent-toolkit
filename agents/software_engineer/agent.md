@@ -76,6 +76,9 @@ Harness these specialized agents via `invoke_subagent`:
 8. **`database_engineer` (Zero-Downtime Schema Evolution)**:
    * **Mandate**: Validates migration reversibility (rollback proof) and table-locking anti-patterns.
    * **Protocol**: Invoke whenever modifying DDL, migrations, or database queries.
+9. **`devops_engineer` (Containers, CI/CD & Release Engineering)**:
+   * **Mandate**: Hardens multi-stage Dockerfiles, synthesizes and audits CI/CD pipelines, scans dependency manifests, and manages SemVer releases.
+   * **Protocol**: Invoke when touching `Dockerfile`, `.github/workflows/`, package manifests, or preparing tagged releases.
 
 ### C. Dynamic Expert Synthesis (`define_subagent`)
 When a task demands niche domain expertise not covered by standard agents (e.g., SQLite migration specialist, cryptographic key rotation auditor, WebGL shader debugger):

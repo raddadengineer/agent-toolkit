@@ -11,6 +11,10 @@ Instead of recreating session scripts, agent definitions, and context rules acro
 ```
 agent-toolkit/
 ├── README.md                          # Documentation and comprehensive usage guide
+├── CHANGELOG.md                       # Keep-a-Changelog release history
+├── .github/
+│   └── workflows/
+│       └── ci.yml                     # Hardened GitHub Actions CI & quality gates
 ├── bin/
 │   ├── atk                            # Global CLI launcher (Bash, symlinked to ~/.local/bin/atk)
 │   └── atk.ps1                        # Global CLI launcher (PowerShell)
@@ -33,6 +37,18 @@ agent-toolkit/
 │   │   ├── SKILL.md                   # PR preparation & sanitization workflow
 │   │   └── scripts/
 │   │       └── audit_pr.py            # Diff auditor (secrets, debug logs) & markdown generator
+│   ├── code-reviewer/                 # Adversarial code review & diff inspection skill
+│   │   ├── SKILL.md                   # 5-dimension review workflow & verdicts
+│   │   └── scripts/
+│   │       └── review_code.py         # Automated diff & error swallowing inspector
+│   ├── test-engineer/                 # Deterministic test suite & boundary matrix skill
+│   │   ├── SKILL.md                   # Red-Green test automation workflow
+│   │   └── scripts/
+│   │       └── scaffold_tests.py      # Test suite & boundary matrix scaffolder
+│   ├── system-architect/              # Architecture Decision Records (ADR) & schema skill
+│   │   ├── SKILL.md                   # System boundary & ADR workflow
+│   │   └── scripts/
+│   │       └── manage_adr.py          # ADR initializer, indexer & auditor
 │   ├── debugger/                      # Stack trace analysis & automated git bisect skill
 │   │   ├── SKILL.md                   # Root-cause investigation & repro workflow
 │   │   └── scripts/
@@ -45,13 +61,32 @@ agent-toolkit/
 │   │   ├── SKILL.md                   # Migration safety & lock contention workflow
 │   │   └── scripts/
 │   │       └── verify_migrations.py   # DDL rollback proof & lock hazard validator
+│   ├── container-engineer/            # Multi-stage Dockerfile hardening & caching skill
+│   │   ├── SKILL.md                   # Container security & layer optimization workflow
+│   │   └── scripts/
+│   │       └── harden_docker.py       # Dockerfile scaffolder & security linter
+│   ├── ci-workflow/                   # CI/CD pipeline synthesis & workflow security skill
+│   │   ├── SKILL.md                   # GitHub Actions hardening workflow
+│   │   └── scripts/
+│   │       └── synthesize_ci.py       # CI pipeline synthesizer & supply-chain auditor
+│   ├── dependency-auditor/            # Multi-ecosystem dependency manifest auditor skill
+│   │   ├── SKILL.md                   # Manifest hygiene & wildcard prevention workflow
+│   │   └── scripts/
+│   │       └── audit_deps.py          # Wildcard, lockfile & deprecation scanner
+│   ├── release-manager/               # SemVer & Conventional Commits release skill
+│   │   ├── SKILL.md                   # Semantic Versioning & changelog workflow
+│   │   └── scripts/
+│   │       └── manage_release.py      # SemVer bump calculator & changelog generator
 │   └── doc-sync/                      # Documentation & schema drift sentinel skill
 │       ├── SKILL.md                   # Drift detection & link verification workflow
 │       └── scripts/
 │           └── check_doc_drift.py     # Filesystem vs README drift sentinel
 ├── scripts/
 │   ├── compress_context.py            # Universal token optimizer & context packer
-│   └── export_adapters.py             # Multi-tool AI assistant configuration compiler
+│   ├── export_adapters.py             # Multi-tool AI assistant configuration compiler
+│   ├── manage_installs.py             # Global installation registry & multi-project updater
+│   ├── guard_command.py               # PreToolUse destructive shell command safety guard
+│   └── auto_format.py                 # PostToolUse multi-language code formatter
 ├── agents/
 │   ├── software_engineer/             # Tech Lead orchestrator & surgical engineering subagent
 │   ├── code_reviewer/                 # Adversarial read-only senior code review subagent
@@ -60,7 +95,9 @@ agent-toolkit/
 │   ├── context_optimizer/             # Token profiling & AST skeleton compression subagent
 │   ├── debugger/                      # Minimal reproduction (repro.sh) & git bisect subagent
 │   ├── security_auditor/              # AppSec SAST scanner & credential leak subagent
-│   └── database_engineer/             # Zero-downtime migration & lock contention subagent
+│   ├── database_engineer/             # Zero-downtime migration & lock contention subagent
+│   ├── devops_engineer/               # Container, CI/CD, dependency & release subagent
+│   └── research/                      # Documentation & web research sandbox subagent
 ├── hooks/
 │   └── hooks.json                     # Antigravity PreToolUse safety guards & PostToolUse formatters
 ├── mcp/
@@ -68,9 +105,17 @@ agent-toolkit/
 └── tests/
     ├── test_atk_cli.py                # Unit tests for bin/atk global CLI
     ├── test_powershell_install.py     # Unit tests for PowerShell installer and bin/atk.ps1
+    ├── test_manage_installs.py        # Unit tests for global installation registry
     ├── test_sync_context.py           # Unit tests for sync_context.py
     ├── test_prime_session.py          # Unit tests for prime_session.py
     ├── test_audit_pr.py               # Unit tests for audit_pr.py
+    ├── test_review_code.py            # Unit tests for review_code.py
+    ├── test_scaffold_tests.py         # Unit tests for scaffold_tests.py
+    ├── test_manage_adr.py             # Unit tests for manage_adr.py
+    ├── test_harden_docker.py          # Unit tests for harden_docker.py
+    ├── test_synthesize_ci.py          # Unit tests for synthesize_ci.py
+    ├── test_audit_deps.py             # Unit tests for audit_deps.py
+    ├── test_manage_release.py         # Unit tests for manage_release.py
     ├── test_export_adapters.py        # Unit tests for export_adapters.py
     ├── test_compress_context.py       # Unit tests for compress_context.py
     ├── test_bisect_debugger.py        # Unit tests for bisect_debugger.py
@@ -305,8 +350,8 @@ A documentation and schema drift sentinel:
 - **Drift Detection**: Verifies that documented skills, subagents, and slash commands match actual disk contents.
 - **Broken Link Verification**: Flags broken internal markdown links across repository guides.
 
-### 14. 🐳 `container-engineer` (Skill)
-Production containerization and Dockerfile hardening (`harden_docker.py` / `atk docker`):
+### 14. 🐳 `container-engineer` (Skill) & `devops_engineer` (Subagent)
+Production containerization, Dockerfile hardening (`harden_docker.py` / `atk docker`), and DevOps orchestration:
 - **Multi-Stage Scaffolding**: Generates minimal, non-root, multi-stage Dockerfiles and `.dockerignore` files for Python, Node, Go, and Rust.
 - **Security & Caching Auditing**: Flags root user execution (`DOCKER-ROOT-USER`), unpinned `:latest` tags, baked secrets, and cache-busting `COPY . .` commands.
 
@@ -325,12 +370,17 @@ Semantic versioning and Conventional Commits changelog manager (`manage_release.
 - **SemVer Calculation**: Analyzes commit history since the last tag and recommends major, minor, or patch version bumps.
 - **Changelog & Notes**: Automatically compiles `CHANGELOG.md` sections and drafts GitHub Release notes.
 
-### 18. 🪝 Lifecycle Hooks & Auto-Formatters (`hooks.json`)
+### 18. 📚 `research` (Subagent)
+Technical research and documentation sandbox subagent:
+- **Context Isolation**: Offloads heavy API documentation, RFC reading, and web searches so raw HTML/Markdown dumps do not pollute the primary coding context.
+- **Version-Pinned Distillation**: Inspects local package manifests first and returns concise signatures, minimal working snippets, and primary citations.
+
+### 19. 🪝 Lifecycle Hooks & Auto-Formatters (`hooks.json`)
 Native Antigravity lifecycle hooks:
 - **`PreToolUse` Safety Guard**: Inspects shell commands before execution and blocks destructive actions (`rm -rf /`, force pushes to `main`, disk overwrites).
 - **`PostToolUse` Auto-Formatter**: Runs language formatters (`ruff`, `prettier`, `swiftformat`, `gofmt`) automatically on modified files.
 
-### 19. 🔌 Native MCP Suite (`mcp_config.json`)
+### 20. 🔌 Native MCP Suite (`mcp_config.json`)
 Pre-packaged Model Context Protocol servers:
 - **Playwright**: Headless browser automation, visual inspection, and live DOM testing.
 - **GitHub**: Remote CI/CD log inspection (`gh run view`), issue lookup, and PR review triage.
@@ -344,12 +394,12 @@ Pre-packaged Model Context Protocol servers:
 
 | Tool | Export Path | Native Integration |
 | :--- | :--- | :--- |
-| **Claude Code** | `.claude/commands/`<br>`CLAUDE.md` | Interactive slash commands: `/session-starter`, `/session-closer`, `/pr-prep`, `/code-review`, `/compress-context` |
-| **Cursor** | `.cursor/rules/*.mdc`<br>`.cursorrules` | Cursor 2.0 MDC rules with trigger conditions and engineering standards |
-| **GitHub Copilot** | `.github/copilot-instructions.md`<br>`.github/prompts/` | Global repo instructions and reusable `.prompt.md` templates |
-| **Roo Code / Cline** | `.roomodes`<br>`.clinerules` | Multi-agent JSON personas (`software-engineer`, `code-reviewer`) and rules |
+| **Claude Code** | `.claude/commands/`<br>`CLAUDE.md` | 15 interactive slash commands (`/session-starter`, `/code-review`, `/container-engineer`, `/ci-workflow`, `/release-manager`, etc.) |
+| **Cursor** | `.cursor/rules/*.mdc`<br>`.cursorrules` | 14 Cursor 2.0 MDC rules with glob trigger conditions and engineering standards |
+| **GitHub Copilot** | `.github/copilot-instructions.md`<br>`.github/prompts/` | Global repo instructions and 15 reusable `.prompt.md` slash templates |
+| **Roo Code / Cline** | `.roomodes`<br>`.clinerules` | 10 multi-agent JSON personas (`software-engineer`, `code-reviewer`, `devops-engineer`, `research`, etc.) and rules |
 | **Windsurf** | `.windsurfrules` | Cascade rules for surgical modifications and session continuity |
-| **Antigravity / Gemini CLI** | `.agents/skills/`<br>`.agents/agents/` | Native skill progressive disclosure and subagent execution |
+| **Antigravity / Gemini CLI** | `.agents/skills/`<br>`.agents/agents/` | Native 15-skill progressive disclosure and 10 specialized subagents |
 
 ---
 

@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+permissions: read-all
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test & Quality Gates (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Run Unit Test Suite
+        run: python3 -m unittest discover -s tests -v
+
+      - name: Verify Context File Synchronization (SHA-256)
+        run: python3 skills/session-closer/scripts/sync_context.py --check
+
+      - name: Verify Documentation & Schema Drift Sentinel
+        run: python3 skills/doc-sync/scripts/check_doc_drift.py --check
+
+      - name: Run SAST Security & Secret Leak Audit
+        run: python3 skills/security-auditor/scripts/audit_security.py --check
+
+      - name: Audit CI/CD Workflow Security
+        run: python3 skills/ci-workflow/scripts/synthesize_ci.py --audit --check
