@@ -222,17 +222,21 @@ case "${COMMAND}" in
         done
 
         echo "🔄 Updating agent-toolkit repository..."
-        git -C "${TOOLKIT_DIR}" pull origin main
+        git -C "${TOOLKIT_DIR}" pull origin main || echo "⚠️ Git pull skipped or failed (continuing with local toolkit)."
         echo "✅ Toolkit repository updated."
 
-        if [ "$update_all" = true ]; then
+        if [ "$update_all" = true ] || [ "$(pwd)" = "${TOOLKIT_DIR}" ] || [ "$(pwd)" = "${HOME}" ]; then
             python3 "${TOOLKIT_DIR}/scripts/manage_installs.py" --update-all
         else
             if [ -d ".agents" ] || [ -d ".claude" ] || [ -d ".cursor" ] || [ -d ".github" ]; then
                 echo "📦 Refreshing configurations in current project..."
-                "${TOOLKIT_DIR}/install.sh" --target "$(pwd)" --tool all "${remaining_args[@]}"
+                if [ ${#remaining_args[@]} -gt 0 ]; then
+                    "${TOOLKIT_DIR}/install.sh" --target "$(pwd)" --tool all "${remaining_args[@]}"
+                else
+                    "${TOOLKIT_DIR}/install.sh" --target "$(pwd)" --tool all
+                fi
             fi
-            python3 "${TOOLKIT_DIR}/scripts/manage_installs.py" --hint-summary 2>/dev/null || true
+            python3 "${TOOLKIT_DIR}/scripts/manage_installs.py" --update-all
         fi
         ;;
     test)
@@ -243,7 +247,8 @@ case "${COMMAND}" in
         setup_link
         ;;
     version|-v|--version)
-        echo "agent-toolkit (atk) v1.0.0"
+        atk_ver="$(git -C "${TOOLKIT_DIR}" describe --tags --abbrev=0 2>/dev/null || echo "v1.1.0")"
+        echo "agent-toolkit (atk) ${atk_ver}"
         echo "Root: ${TOOLKIT_DIR}"
         ;;
     help|-h|--help)

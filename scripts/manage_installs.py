@@ -69,6 +69,115 @@ def save_registry(data: Dict[str, Any], registry_file: Optional[Path] = None):
     temp_file.replace(reg_path)
 
 
+def is_temp_test_path(path_str: str) -> bool:
+    """Returns True if the path looks like an automated unit test temporary directory."""
+    markers = (
+        "agent_toolkit_cli_test_",
+        "agent_toolkit_pwsh_test_",
+        "agent_toolkit_adapters_test_",
+        "atk_test_installs_",
+    )
+    return any(m in path_str for m in markers)
+
+
+def is_default_registry(registry_file: Optional[Path] = None) -> bool:
+    """Returns True when operating on the user's real global registry."""
+    return registry_file is None and not os.environ.get("AGENT_TOOLKIT_REGISTRY")
+
+
+def detect_project_config(project_dir: Path) -> Optional[Tuple[str, str]]:
+    """
+    Inspects a directory for agent-toolkit installation markers.
+    Returns (tool, mode) if detected, or None if not an agent-toolkit installation.
+    """
+    if not project_dir.is_dir():
+        return None
+
+    detected_tools = []
+    if (
+        (project_dir / ".agents" / "skills" / "session-starter").exists()
+        or (project_dir / ".agents" / "skills" / "session-starter").is_symlink()
+        or (project_dir / ".agents" / "hooks.json").exists()
+        or (project_dir / ".agents" / "hooks.json").is_symlink()
+    ):
+        detected_tools.append("antigravity")
+    if (project_dir / ".claude" / "commands" / "session-starter.md").exists():
+        detected_tools.append("claude")
+    if (project_dir / ".cursor" / "rules" / "engineering-standards.mdc").exists():
+        detected_tools.append("cursor")
+    if (project_dir / ".github" / "prompts" / "session-starter.prompt.md").exists():
+        detected_tools.append("copilot")
+    if (project_dir / ".roomodes").exists():
+        detected_tools.append("roo")
+    if (project_dir / ".windsurfrules").exists():
+        detected_tools.append("windsurf")
+
+    if not detected_tools:
+        return None
+
+    tool = "all" if len(detected_tools) > 1 else detected_tools[0]
+
+    # Determine symlink vs copy mode from .agents artifacts if present
+    mode = "symlink"
+    hooks_path = project_dir / ".agents" / "hooks.json"
+    starter_path = project_dir / ".agents" / "skills" / "session-starter"
+    if hooks_path.is_symlink() or starter_path.is_symlink():
+        mode = "symlink"
+    elif hooks_path.exists() or starter_path.exists():
+        mode = "copy"
+
+    return tool, mode
+
+
+def discover_projects(
+    toolkit_dir: Path,
+    search_dirs: Optional[List[Path]] = None,
+    registry_file: Optional[Path] = None,
+) -> List[Dict[str, Any]]:
+    """
+    Scans sibling project directories (e.g. parent of toolkit_dir) for existing
+    agent-toolkit installations and registers any missing projects.
+    """
+    if search_dirs is None:
+        parent = toolkit_dir.resolve().parent
+        search_dirs = [parent] if parent.is_dir() else []
+
+    data = load_registry(registry_file)
+    discovered = []
+
+    for base_dir in search_dirs:
+        if not base_dir.is_dir():
+            continue
+        try:
+            children = sorted(base_dir.iterdir())
+        except OSError:
+            continue
+
+        for child in children:
+            if not child.is_dir() or child.name.startswith("."):
+                continue
+            try:
+                resolved = str(child.resolve())
+            except OSError:
+                continue
+
+            if is_default_registry(registry_file) and is_temp_test_path(resolved):
+                continue
+
+            if resolved in data["installs"]:
+                continue
+
+            detected = detect_project_config(child)
+            if detected:
+                tool, mode = detected
+                entry = register_project(child, tool=tool, mode=mode, registry_file=registry_file)
+                if entry:
+                    discovered.append(entry)
+                    data = load_registry(registry_file)
+
+    return discovered
+
+
 def register_project(
     target: Path,
     tool: str = "all",
@@ -80,6 +189,8 @@ def register_project(
     if str(target).startswith("-") or not target_path.exists():
         return {}
     resolved_target = str(target_path.resolve())
+    if is_default_registry(registry_file) and is_temp_test_path(resolved_target):
+        return {}
     data = load_registry(registry_file)
     now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
 
@@ -110,11 +221,12 @@ def unregister_project(target: Path, registry_file: Optional[Path] = None) -> bo
 
 
 def prune_registry(registry_file: Optional[Path] = None) -> List[str]:
-    """Prunes project entries whose directories no longer exist on disk."""
+    """Prunes project entries whose directories no longer exist on disk (or temp test paths in default registry)."""
     data = load_registry(registry_file)
+    default_reg = is_default_registry(registry_file)
     pruned = []
     for path_str in list(data["installs"].keys()):
-        if not Path(path_str).is_dir():
+        if not Path(path_str).is_dir() or (default_reg and is_temp_test_path(path_str)):
             pruned.append(path_str)
             del data["installs"][path_str]
     if pruned:
@@ -138,6 +250,7 @@ def update_single_project(
     tool: str,
     mode: str,
     toolkit_dir: Path,
+    registry_file: Optional[Path] = None,
 ) -> Tuple[bool, str]:
     """Executes export_adapters.py for a registered project."""
     export_script = toolkit_dir / "scripts" / "export_adapters.py"
@@ -154,8 +267,11 @@ def update_single_project(
         "--mode",
         mode,
     ]
+    env = dict(os.environ)
+    if registry_file is not None:
+        env["AGENT_TOOLKIT_REGISTRY"] = str(Path(registry_file).resolve())
     try:
-        proc = subprocess.run(cmd, capture_output=True, text=True, check=False)
+        proc = subprocess.run(cmd, capture_output=True, text=True, check=False, env=env)
         if proc.returncode == 0:
             return True, "Updated successfully"
         err_msg = proc.stderr.strip() or proc.stdout.strip() or f"Process failed with exit code {proc.returncode}"
@@ -167,9 +283,12 @@ def update_single_project(
 def update_all_projects(
     toolkit_dir: Path,
     registry_file: Optional[Path] = None,
+    discover: Optional[bool] = None,
 ) -> Dict[str, Any]:
     """Updates all registered project installations across the machine."""
     pruned = prune_registry(registry_file)
+    should_discover = is_default_registry(registry_file) if discover is None else discover
+    discovered = discover_projects(toolkit_dir, registry_file=registry_file) if should_discover else []
     projects = list_projects(registry_file)
 
     results = {
@@ -177,6 +296,7 @@ def update_all_projects(
         "updated": [],
         "failed": [],
         "pruned": pruned,
+        "discovered": discovered,
     }
 
     if not projects:
@@ -189,7 +309,7 @@ def update_all_projects(
         tool = proj.get("tool", "all")
         mode = proj.get("mode", "symlink")
 
-        success, msg = update_single_project(target_path, tool, mode, toolkit_dir)
+        success, msg = update_single_project(target_path, tool, mode, toolkit_dir, registry_file=registry_file)
         if success:
             results["updated"].append({"path": str(target_path), "tool": tool, "mode": mode})
         else:
@@ -205,6 +325,8 @@ def update_all_projects(
 
 def print_hint_summary(registry_file: Optional[Path] = None):
     """Prints a friendly one-line hint if there are registered projects."""
+    if is_default_registry(registry_file):
+        discover_projects(get_toolkit_dir(), registry_file=registry_file)
     projects = list_projects(registry_file)
     active_count = sum(1 for p in projects if p.get("exists", False))
     if active_count > 1:
@@ -217,6 +339,7 @@ def main():
     parser.add_argument("--tool", default="all", help="Tool adapters installed (default: all)")
     parser.add_argument("--mode", default="symlink", choices=["symlink", "copy"], help="Installation mode (default: symlink)")
     parser.add_argument("--unregister", metavar="PATH", help="Unregister a project path")
+    parser.add_argument("--discover", action="store_true", help="Auto-discover existing sibling project installations")
     parser.add_argument("--list", action="store_true", help="List all registered project installations")
     parser.add_argument("--json", action="store_true", help="Output registered projects in JSON format")
     parser.add_argument("--prune", action="store_true", help="Prune non-existent paths from registry")
@@ -231,10 +354,11 @@ def main():
     if args.register:
         target = Path(args.register)
         entry = register_project(target, tool=args.tool, mode=args.mode, registry_file=custom_reg)
-        print(f"✅ Registered project in agent-toolkit registry:")
-        print(f"   • Path: {entry['path']}")
-        print(f"   • Tool: {entry['tool']}")
-        print(f"   • Mode: {entry['mode']}")
+        if entry:
+            print("✅ Registered project in agent-toolkit registry:")
+            print(f"   • Path: {entry['path']}")
+            print(f"   • Tool: {entry['tool']}")
+            print(f"   • Mode: {entry['mode']}")
         sys.exit(0)
 
     if args.unregister:
@@ -244,6 +368,16 @@ def main():
             print(f"✅ Unregistered project: {target.resolve()}")
         else:
             print(f"⚠️ Project not found in registry: {target.resolve()}")
+        sys.exit(0)
+
+    if args.discover:
+        discovered = discover_projects(toolkit_dir, registry_file=custom_reg)
+        if discovered:
+            print(f"🔍 Discovered and registered {len(discovered)} project(s):")
+            for d in discovered:
+                print(f"   • {d['path']} (tool: {d['tool']}, mode: {d['mode']})")
+        else:
+            print("ℹ️ No new unregistered sibling projects found.")
         sys.exit(0)
 
     if args.prune:
@@ -264,6 +398,12 @@ def main():
         print("🔄 Updating all registered agent-toolkit installations across system...\n")
         results = update_all_projects(toolkit_dir, registry_file=custom_reg)
 
+        if results.get("discovered"):
+            print(f"🔍 Auto-discovered {len(results['discovered'])} existing project installation(s):")
+            for d in results["discovered"]:
+                print(f"   • {d['path']} (tool: {d['tool']}, mode: {d['mode']})")
+            print("")
+
         if results["pruned"]:
             print(f"🧹 Pruned {len(results['pruned'])} removed project(s):")
             for p in results["pruned"]:
@@ -283,6 +423,10 @@ def main():
 
         print(f"\n✨ Completed: {len(results['updated'])}/{results['total']} projects updated successfully.")
         sys.exit(0 if not results["failed"] else 1)
+
+    if is_default_registry(custom_reg):
+        prune_registry(registry_file=custom_reg)
+        discover_projects(toolkit_dir, registry_file=custom_reg)
 
     if args.json:
         projects = list_projects(registry_file=custom_reg)

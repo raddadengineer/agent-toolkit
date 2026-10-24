@@ -31,7 +31,7 @@ class TestAtkCli(unittest.TestCase):
     def test_atk_version(self):
         result = subprocess.run([str(ATK_BIN), "version"], capture_output=True, text=True)
         self.assertEqual(result.returncode, 0)
-        self.assertIn("agent-toolkit (atk) v1.0.0", result.stdout)
+        self.assertIn("agent-toolkit (atk) v1.", result.stdout)
         self.assertIn(str(TOOLKIT_ROOT), result.stdout)
 
     def test_atk_install_into_target(self):

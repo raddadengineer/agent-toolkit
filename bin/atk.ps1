@@ -271,15 +271,20 @@ switch ($Command) {
         Write-Host "✅ Toolkit repository updated."
 
         $manageScript = Join-Path $ToolkitDir "scripts/manage_installs.py"
-        if ($updateAll) {
+        $currentDir = (Get-Location).Path
+        if ($updateAll -or ($currentDir -eq $ToolkitDir) -or ($currentDir -eq $HOME)) {
             & $py $manageScript --update-all
         } else {
             if ((Test-Path ".agents") -or (Test-Path ".claude") -or (Test-Path ".cursor") -or (Test-Path ".github")) {
                 Write-Host "📦 Refreshing configurations in current project..."
                 $installScript = Join-Path $ToolkitDir "install.ps1"
-                & $installScript -Target (Get-Location).Path -Tool all @remaining
+                if ($remaining.Count -gt 0) {
+                    & $installScript -Target $currentDir -Tool all @remaining
+                } else {
+                    & $installScript -Target $currentDir -Tool all
+                }
             }
-            & $py $manageScript --hint-summary 2>$null
+            & $py $manageScript --update-all
         }
     }
     'test' {
@@ -290,7 +295,9 @@ switch ($Command) {
         Setup-Link
     }
     { $_ -in @('version', '-v', '--version') } {
-        Write-Host "agent-toolkit (atk) v1.0.0"
+        $atkVer = git -C $ToolkitDir describe --tags --abbrev=0 2>$null
+        if (-not $atkVer) { $atkVer = "v1.1.0" }
+        Write-Host "agent-toolkit (atk) $atkVer"
         Write-Host "Root: $ToolkitDir"
     }
     default {

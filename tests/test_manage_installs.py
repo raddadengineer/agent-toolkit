@@ -11,6 +11,8 @@ import unittest
 from pathlib import Path
 
 from scripts.manage_installs import (
+    detect_project_config,
+    discover_projects,
     get_registry_path,
     list_projects,
     load_registry,
@@ -101,6 +103,22 @@ class TestManageInstalls(unittest.TestCase):
         # Check that adapter files actually got created in target project dirs
         self.assertTrue((self.proj_a / ".claude").exists())
         self.assertTrue((self.proj_b / ".cursor").exists())
+
+    def test_detect_and_discover_projects(self):
+        workspace = Path(self.test_dir) / "workspace"
+        workspace.mkdir()
+        existing_proj = workspace / "existing_app"
+        existing_proj.mkdir()
+        (existing_proj / ".roomodes").write_text("{}", encoding="utf-8")
+        (existing_proj / ".windsurfrules").write_text("# rules", encoding="utf-8")
+
+        cfg = detect_project_config(existing_proj)
+        self.assertEqual(cfg, ("all", "symlink"))
+
+        discovered = discover_projects(TOOLKIT_ROOT, search_dirs=[workspace], registry_file=self.registry_file)
+        self.assertEqual(len(discovered), 1)
+        self.assertEqual(discovered[0]["path"], str(existing_proj.resolve()))
+        self.assertEqual(discovered[0]["tool"], "all")
 
 
 if __name__ == "__main__":

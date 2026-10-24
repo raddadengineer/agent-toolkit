@@ -50,7 +50,7 @@ class TestPowerShellInstall(unittest.TestCase):
             text=True,
         )
         self.assertEqual(result.returncode, 0)
-        self.assertIn("agent-toolkit (atk) v1.0.0", result.stdout)
+        self.assertIn("agent-toolkit (atk) v1.", result.stdout)
         self.assertIn(str(TOOLKIT_ROOT), result.stdout)
 
     @unittest.skipIf(PWSH_BIN is None, "PowerShell (pwsh or powershell) not installed")
@@ -262,7 +262,7 @@ $endMarker
             text=True,
         )
         self.assertEqual(result.returncode, 0)
-        self.assertIn("agent-toolkit (atk) v1.0.0", result.stdout)
+        self.assertIn("agent-toolkit (atk) v1.", result.stdout)
 
     def test_atk_ps1_installs_and_update_all(self):
         target_dir = Path(self.test_dir) / "pwsh_project"
