@@ -116,10 +116,19 @@ def audit_diff(repo_root: Path, diff_args: List[str]) -> Dict[str, Any]:
         # Skip testing files for debug statement warnings (tests often legitimately inspect prints)
         is_test_file = any(t in current_file.lower() for t in ["test", "spec", "__tests__"])
         is_doc_file = any(current_file.lower().endswith(ext) for ext in [".md", ".txt", ".rst", ".markdown"])
+        norm_file = current_file.replace("\\", "/")
+        is_cli_script = (
+            norm_file.startswith("scripts/")
+            or norm_file.startswith("bin/")
+            or "/scripts/" in norm_file
+            or "/bin/" in norm_file
+        )
 
         # Check debug statements
         if not is_test_file and not is_doc_file:
             for pattern, desc in DEBUG_PATTERNS:
+                if is_cli_script and desc in ("Python print debug statement", "Go print statement"):
+                    continue
                 if re.search(pattern, added_text):
                     findings.append({
                         "file": current_file,
@@ -197,7 +206,7 @@ Summary of changes implemented in this pull request.
 
 def main():
     parser = argparse.ArgumentParser(description="Universal PR Auditor & Description Generator.")
-    parser.add_argument("--path", type=str, default=None, help="Repository root path")
+    parser.add_argument("--path", "--dir", "--repo", dest="path", type=str, default=None, help="Repository root path")
     parser.add_argument("--base", type=str, default=None, help="Base branch/commit to diff against")
     parser.add_argument("--check", action="store_true", help="Exit code 1 if critical issues or warnings found")
     parser.add_argument("--generate-desc", action="store_true", help="Generate full PR markdown description")

@@ -53,7 +53,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: "pip"
 
       - name: Install Dependencies
         run: |
@@ -362,7 +361,7 @@ def main():
     parser.add_argument("--audit", action="store_true", help="Audit existing workflows in .github/workflows/")
     parser.add_argument("--check", action="store_true", help="Exit code 1 if CRITICAL findings exist")
     parser.add_argument("--json", action="store_true", help="Output machine-readable JSON")
-    parser.add_argument("--dir", type=str, default=None, help="Repository root path (default: current)")
+    parser.add_argument("--dir", "--path", "--repo", dest="dir", type=str, default=None, help="Repository root path (default: current)")
 
     args = parser.parse_args()
     repo_root = Path(args.dir).resolve() if args.dir else Path.cwd()

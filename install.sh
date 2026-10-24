@@ -313,9 +313,6 @@ if [ -n "${TARGET_TOOL}" ]; then
         exit 1
     fi
     python3 "${EXPORT_SCRIPT}" --target "${TARGET_DIR}" --tool "${TARGET_TOOL}" --mode "${MODE}"
-    if [ -f "${SCRIPT_DIR}/scripts/manage_installs.py" ]; then
-        python3 "${SCRIPT_DIR}/scripts/manage_installs.py" --register "${TARGET_DIR}" --tool "${TARGET_TOOL}" --mode "${MODE}" >/dev/null 2>&1 || true
-    fi
     exit 0
 fi
 

@@ -422,10 +422,17 @@ def main():
         default="python",
         help="Application technology stack (default: python)",
     )
-    parser.add_argument("--audit", type=str, default=None, help="Path to Dockerfile to audit")
+    parser.add_argument(
+        "--audit",
+        nargs="?",
+        const="",
+        type=str,
+        default=None,
+        help="Audit Dockerfile (optional path to Dockerfile, defaults to ./Dockerfile)",
+    )
     parser.add_argument("--check", action="store_true", help="Exit code 1 if CRITICAL findings exist")
     parser.add_argument("--json", action="store_true", help="Output machine-readable JSON")
-    parser.add_argument("--dir", type=str, default=None, help="Target directory for scaffolding (default: current)")
+    parser.add_argument("--dir", "--path", "--repo", dest="dir", type=str, default=None, help="Target directory for scaffolding (default: current)")
 
     args = parser.parse_args()
     target_dir = Path(args.dir).resolve() if args.dir else Path.cwd()
@@ -434,7 +441,7 @@ def main():
         init_stack(target_dir, args.stack)
         sys.exit(0)
 
-    dockerfile_path = Path(args.audit).resolve() if args.audit else target_dir / "Dockerfile"
+    dockerfile_path = Path(args.audit).resolve() if (args.audit and args.audit.strip()) else target_dir / "Dockerfile"
 
     res = audit_dockerfile(dockerfile_path)
 

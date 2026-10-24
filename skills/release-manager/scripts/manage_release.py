@@ -255,7 +255,7 @@ def main():
     parser.add_argument("--changelog", action="store_true", help="Update or create CHANGELOG.md")
     parser.add_argument("--check", action="store_true", help="Verify release readiness (clean tree, main branch)")
     parser.add_argument("--json", action="store_true", help="Output machine-readable JSON")
-    parser.add_argument("--dir", type=str, default=None, help="Repository root path (default: current)")
+    parser.add_argument("--dir", "--path", "--repo", dest="dir", type=str, default=None, help="Repository root path (default: current)")
 
     args = parser.parse_args()
     repo_root = Path(args.dir).resolve() if args.dir else Path.cwd()

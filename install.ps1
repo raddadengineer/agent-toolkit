@@ -329,10 +329,6 @@ if ($Tool) {
     }
     $py = Get-Python
     & $py $ExportScript --target $Target --tool $Tool --mode $Mode
-    $manageScript = Join-Path $ScriptDir "scripts/manage_installs.py"
-    if (Test-Path $manageScript) {
-        & $py $manageScript --register $Target --tool $Tool --mode $Mode 2>$null
-    }
     exit 0
 }
 

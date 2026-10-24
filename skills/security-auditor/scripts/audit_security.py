@@ -88,8 +88,20 @@ def scan_file_for_sast(file_path: Path) -> List[Dict[str, Any]]:
             if "test_" in file_path.name or file_path.parent.name == "tests":
                 continue
             # Skip rule definitions and generator template strings in toolkit scripts
-            if file_path.name in ["audit_security.py", "verify_migrations.py", "bisect_debugger.py"] and (
-                "description" in line or "SAST_RULES" in line or "re.compile" in line or "subprocess.run" in line
+            if file_path.name in [
+                "audit_security.py",
+                "verify_migrations.py",
+                "bisect_debugger.py",
+                "review_code.py",
+                "audit_pr.py",
+                "guard_command.py",
+                "harden_docker.py",
+            ] and (
+                "description" in line
+                or "SAST_RULES" in line
+                or "SECRET_PATTERNS" in line
+                or "re.compile" in line
+                or "subprocess.run" in line
             ):
                 continue
             if rule["pattern"].search(line):
@@ -143,7 +155,7 @@ def audit_repository(repo_path: Path) -> Dict[str, Any]:
 
 def main():
     parser = argparse.ArgumentParser(description="Universal SAST & Security Auditor.")
-    parser.add_argument("--dir", type=str, default=".", help="Root directory to audit")
+    parser.add_argument("--dir", "--path", "--repo", dest="dir", type=str, default=".", help="Root directory to audit")
     parser.add_argument("--check", action="store_true", help="Exit code 1 if CRITICAL or HIGH findings exist")
     parser.add_argument("--json", action="store_true", help="Output results in JSON format")
 

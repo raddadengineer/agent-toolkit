@@ -575,7 +575,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Universal Token Optimization & Context Compression Engine."
     )
-    parser.add_argument("--path", type=str, default=None, help="Repository root path")
+    parser.add_argument("--path", "--dir", "--repo", dest="path", type=str, default=None, help="Repository root path")
     parser.add_argument("--file", type=str, default=None, help="Compress a single file to stdout")
     parser.add_argument("--profile", action="store_true", help="Profile token usage heatmap")
     parser.add_argument("--skeleton", action="store_true", help="Pack with AST skeletons only")

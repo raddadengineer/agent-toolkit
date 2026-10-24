@@ -305,7 +305,7 @@ def main():
     parser.add_argument("--base", type=str, default=None, help="Base branch to diff against (e.g. main)")
     parser.add_argument("--check", action="store_true", help="Exit code 1 if CRITICAL findings exist")
     parser.add_argument("--json", action="store_true", help="Output machine-readable JSON")
-    parser.add_argument("--path", type=str, default=None, help="Repository root path")
+    parser.add_argument("--path", "--dir", "--repo", dest="path", type=str, default=None, help="Repository root path")
 
     args = parser.parse_args()
 

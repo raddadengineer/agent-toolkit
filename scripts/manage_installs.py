@@ -183,7 +183,6 @@ def update_all_projects(
         return results
 
     now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
-    data = load_registry(registry_file)
 
     for proj in projects:
         target_path = Path(proj["path"])
@@ -193,11 +192,13 @@ def update_all_projects(
         success, msg = update_single_project(target_path, tool, mode, toolkit_dir)
         if success:
             results["updated"].append({"path": str(target_path), "tool": tool, "mode": mode})
-            if str(target_path) in data["installs"]:
-                data["installs"][str(target_path)]["last_updated"] = now_iso
         else:
             results["failed"].append({"path": str(target_path), "error": msg})
 
+    data = load_registry(registry_file)
+    for item in results["updated"]:
+        if item["path"] in data["installs"]:
+            data["installs"][item["path"]]["last_updated"] = now_iso
     save_registry(data, registry_file)
     return results
 

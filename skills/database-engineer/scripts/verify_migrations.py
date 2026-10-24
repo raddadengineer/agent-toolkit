@@ -145,7 +145,7 @@ def audit_migrations(root_dir: Path) -> Dict[str, Any]:
 
 def main():
     parser = argparse.ArgumentParser(description="Database Migration Safety & Lock Contention Validator.")
-    parser.add_argument("--dir", type=str, default=".", help="Root directory containing migrations")
+    parser.add_argument("--dir", "--path", "--repo", dest="dir", type=str, default=".", help="Root directory containing migrations")
     parser.add_argument("--check", action="store_true", help="Exit code 1 if critical or high hazards are found")
     parser.add_argument("--json", action="store_true", help="Output results in JSON format")
 

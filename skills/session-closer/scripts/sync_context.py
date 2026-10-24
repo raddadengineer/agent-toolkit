@@ -332,6 +332,9 @@ def main():
     )
     parser.add_argument(
         "--path",
+        "--dir",
+        "--repo",
+        dest="path",
         type=str,
         default=None,
         help="Path to repository root (defaults to auto-detected root)",

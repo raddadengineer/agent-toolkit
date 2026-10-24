@@ -3,17 +3,21 @@
 check_doc_drift.py — Documentation & Schema Drift Sentinel
 
 Validates that documented agents, skills, and commands in README.md and documentation
-match the actual filesystem assets and detects broken internal links.
+match the actual filesystem assets, verifies SHA-256 parity between skills/*/scripts/
+and scripts/, and detects broken internal links.
 
 Usage:
     python3 check_doc_drift.py --check
+    python3 check_doc_drift.py --sync-scripts
     python3 check_doc_drift.py --json
 """
 
 import argparse
+import hashlib
 import json
 import os
 import re
+import shutil
 import sys
 from pathlib import Path
 from typing import Any, Dict, List
@@ -26,6 +30,36 @@ def get_repo_root() -> Path:
             return cur
         cur = cur.parent
     return Path.cwd().resolve()
+
+
+def file_sha256(path: Path) -> str:
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        while chunk := f.read(65536):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def sync_skill_scripts(repo_root: Path) -> List[str]:
+    """Synchronizes scripts between skills/*/scripts/*.py and scripts/*.py based on newest mtime."""
+    skills_dir = repo_root / "skills"
+    scripts_dir = repo_root / "scripts"
+    synced = []
+    if not skills_dir.exists() or not scripts_dir.exists():
+        return synced
+
+    for skill_script in sorted(skills_dir.glob("*/scripts/*.py")):
+        mirror_script = scripts_dir / skill_script.name
+        if not mirror_script.exists():
+            shutil.copy2(skill_script, mirror_script)
+            synced.append(skill_script.name)
+        elif file_sha256(skill_script) != file_sha256(mirror_script):
+            if skill_script.stat().st_mtime >= mirror_script.stat().st_mtime:
+                shutil.copy2(skill_script, mirror_script)
+            else:
+                shutil.copy2(mirror_script, skill_script)
+            synced.append(skill_script.name)
+    return synced
 
 
 def check_documentation_drift(repo_root: Path) -> Dict[str, Any]:
@@ -50,7 +84,7 @@ def check_documentation_drift(repo_root: Path) -> Dict[str, Any]:
         readme_content = readme_path.read_text(encoding="utf-8")
 
     # Check that every skill on disk is mentioned in README
-    for skill in disk_skills:
+    for skill in sorted(disk_skills):
         if skill not in readme_content:
             findings.append({
                 "type": "undocumented_skill",
@@ -60,7 +94,7 @@ def check_documentation_drift(repo_root: Path) -> Dict[str, Any]:
             })
 
     # Check that every agent on disk is mentioned in README
-    for agent in disk_agents:
+    for agent in sorted(disk_agents):
         if agent not in readme_content:
             findings.append({
                 "type": "undocumented_agent",
@@ -70,11 +104,9 @@ def check_documentation_drift(repo_root: Path) -> Dict[str, Any]:
             })
 
     # 4. Check for broken file markdown links in README
-    # Matches [text](file:///path) or [text](./path) or [text](path/to/file)
     link_pattern = re.compile(r'\[([^\]]+)\]\(([^)]+)\)')
     for match in link_pattern.finditer(readme_content):
         link_target = match.group(2).split("#")[0].strip()
-        # Only check local paths
         if link_target.startswith("http://") or link_target.startswith("https://"):
             continue
         if link_target.startswith("file://"):
@@ -82,7 +114,6 @@ def check_documentation_drift(repo_root: Path) -> Dict[str, Any]:
         else:
             target_path = repo_root / link_target
 
-        # If it looks like a path and doesn't exist
         if "/" in link_target and not target_path.exists():
             findings.append({
                 "type": "broken_link",
@@ -90,6 +121,23 @@ def check_documentation_drift(repo_root: Path) -> Dict[str, Any]:
                 "item": link_target,
                 "message": f"Broken markdown reference in README.md: '{link_target}' not found on disk",
             })
+
+    # 5. Check SHA-256 parity between skills/*/scripts/*.py and scripts/*.py
+    scripts_dir = repo_root / "scripts"
+    if skills_dir.exists() and scripts_dir.exists():
+        for skill_script in sorted(skills_dir.glob("*/scripts/*.py")):
+            mirror_script = scripts_dir / skill_script.name
+            if mirror_script.exists():
+                if file_sha256(skill_script) != file_sha256(mirror_script):
+                    findings.append({
+                        "type": "script_drift",
+                        "severity": "CRITICAL",
+                        "item": skill_script.name,
+                        "message": (
+                            f"Script drift detected between '{skill_script.relative_to(repo_root)}' "
+                            f"and 'scripts/{skill_script.name}'. Run 'check_doc_drift.py --sync-scripts'."
+                        ),
+                    })
 
     criticals = sum(1 for f in findings if f["severity"] == "CRITICAL")
     warnings = sum(1 for f in findings if f["severity"] == "WARNING")
@@ -107,12 +155,20 @@ def check_documentation_drift(repo_root: Path) -> Dict[str, Any]:
 
 def main():
     parser = argparse.ArgumentParser(description="Documentation & Schema Drift Sentinel.")
-    parser.add_argument("--dir", type=str, default=None, help="Repository root directory")
+    parser.add_argument("--dir", "--path", "--repo", dest="dir", type=str, default=None, help="Repository root directory")
     parser.add_argument("--check", action="store_true", help="Exit code 1 if critical doc drift or broken links are found")
+    parser.add_argument("--sync-scripts", action="store_true", help="Synchronize skills/*/scripts/*.py and scripts/*.py")
     parser.add_argument("--json", action="store_true", help="Output results in JSON format")
 
     args = parser.parse_args()
     repo_root = Path(args.dir).resolve() if args.dir else get_repo_root()
+
+    if args.sync_scripts:
+        synced = sync_skill_scripts(repo_root)
+        print(f"🔄 Synchronized {len(synced)} skill script(s) across skills/*/scripts/ and scripts/.")
+        for s in synced:
+            print(f"   ✅ {s}")
+        sys.exit(0)
 
     report = check_documentation_drift(repo_root)
 

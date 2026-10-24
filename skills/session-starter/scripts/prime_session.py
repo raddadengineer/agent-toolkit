@@ -269,7 +269,7 @@ def format_markdown_brief(brief: Dict[str, Any]) -> str:
 
 def main():
     parser = argparse.ArgumentParser(description="Universal Session Primer & Orientation Helper.")
-    parser.add_argument("--path", type=str, default=None, help="Repository root path")
+    parser.add_argument("--path", "--dir", "--repo", dest="path", type=str, default=None, help="Repository root path")
     parser.add_argument("--json", action="store_true", help="Output raw JSON brief")
     parser.add_argument(
         "--handover-only",

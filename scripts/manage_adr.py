@@ -285,7 +285,7 @@ def audit_adrs(adr_dir: Path) -> Dict[str, Any]:
 
 def main():
     parser = argparse.ArgumentParser(description="Architecture Decision Record (ADR) Manager & Sentinel.")
-    parser.add_argument("--dir", type=str, default=None, help="Custom ADR directory path (default: docs/adr)")
+    parser.add_argument("--dir", "--path", "--repo", dest="dir", type=str, default=None, help="Custom ADR directory path (default: docs/adr)")
     parser.add_argument("--init", action="store_true", help="Initialize docs/adr with baseline 0000 record")
     parser.add_argument("--new", type=str, default=None, help="Author a new ADR with specified title")
     parser.add_argument("--list", action="store_true", help="List all recorded ADRs and their statuses")
