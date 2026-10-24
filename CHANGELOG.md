@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [v1.1.0] — 2026-10-23
+
+### 🚀 Features
+- enforce script parity sentinel, standardize CLI flags, and harden hooks (c02eb2f)
+- add --all-projects alias to atk install and atk.ps1 install (61855dc)
+- add global installation registry and multi-project updater via atk update --all (1919e00)
+
+### 🐛 Bug Fixes
+- use safe parameter expansion ${1:-} in bin/atk to prevent nounset unbound variable error (d697f3f)
+
+### 🔧 Maintenance & Chores
+- Add DevOps and research agent integrations (8d9672f)
+
+---
+
 ## [v1.0.0] — 2026-10-21
 
 ### 🚀 Features
