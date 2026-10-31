@@ -9,6 +9,11 @@
 
 [CmdletBinding()]
 param(
+    [Alias('w')]
+    [switch]$Web,
+
+    [string]$InstallDir,
+
     [Alias('t')]
     [string]$Target,
 
@@ -49,6 +54,9 @@ $i = 0
 while ($i -lt $RemainingArgs.Count) {
     $arg = $RemainingArgs[$i]
     switch -Regex ($arg) {
+        '^(-w|--web)$'        { $Web = $true }
+        '^--install-dir$'     { $InstallDir = $RemainingArgs[++$i] }
+        '^--install-dir=(.*)$' { $InstallDir = $Matches[1] }
         '^--target$'  { $Target = $RemainingArgs[++$i] }
         '^--tool$'    { $Tool   = $RemainingArgs[++$i] }
         '^--skill$'   { $Skill  = $RemainingArgs[++$i] }
@@ -68,10 +76,10 @@ $ScriptPath = $PSCommandPath
 if (-not $ScriptPath) {
     $ScriptPath = $MyInvocation.MyCommand.Path
 }
-if (-not $ScriptPath) {
+if (-not $ScriptPath -and $MyInvocation.MyCommand.Definition -and (Test-Path -LiteralPath $MyInvocation.MyCommand.Definition -ErrorAction SilentlyContinue)) {
     $ScriptPath = $MyInvocation.MyCommand.Definition
 }
-if ($ScriptPath) {
+if ($ScriptPath -and (Test-Path -LiteralPath $ScriptPath -ErrorAction SilentlyContinue)) {
     $Item = Get-Item -LiteralPath $ScriptPath -ErrorAction SilentlyContinue
     while ($Item -and $Item.LinkType) {
         $Tgt = $Item.Target
@@ -83,12 +91,14 @@ if ($ScriptPath) {
     if ($Item) {
         $ScriptPath = $Item.FullName
     }
+} else {
+    $ScriptPath = $null
 }
 
-$ScriptDir = Split-Path -Parent $ScriptPath
-$SkillsDir = Join-Path $ScriptDir "skills"
-$AgentsDir = Join-Path $ScriptDir "agents"
-$ExportScript = Join-Path $ScriptDir "scripts/export_adapters.py"
+$ScriptDir = if ($ScriptPath) { Split-Path -Parent $ScriptPath } else { "" }
+$SkillsDir = if ($ScriptDir) { Join-Path $ScriptDir "skills" } else { "" }
+$AgentsDir = if ($ScriptDir) { Join-Path $ScriptDir "agents" } else { "" }
+$ExportScript = if ($ScriptDir) { Join-Path $ScriptDir "scripts/export_adapters.py" } else { "" }
 
 function Get-Python {
     if (Get-Command python3 -ErrorAction SilentlyContinue) {
@@ -106,6 +116,8 @@ function Show-Usage {
 Usage: install.ps1 [options]
 
 Options:
+  -Web, -w, --web          Install directly from web repository (clones/updates ~/.agent-toolkit)
+  -InstallDir <path>       Custom central toolkit directory for web install (default: ~/.agent-toolkit)
   -Target <path>, -t       Target project repository path (default: current directory)
   -Tool <name>             Export configurations for a specific AI assistant:
                            all, claude, cursor, copilot, roo, windsurf, antigravity
@@ -113,12 +125,16 @@ Options:
   -Agent <name>, -a        Install specific agent by name (e.g., software_engineer)
   -All                     Install all available skills and agents (.agents/)
   -Mode <symlink|copy>, -m Installation mode (default: symlink)
-  -Global, -g, -link       Install global 'atk' CLI launcher & configure PowerShell profile
+  -Global, -g, -link       Install global 'atk.ps1' / 'atk' CLI launcher & configure PowerShell profile
   -Update, -u              Pull latest toolkit updates from origin main
   -List, -l                List available skills and agents
   -Help, -h                Display this help message
 
 Examples:
+  # Direct web installation (one-liner via PowerShell):
+  irm https://raw.githubusercontent.com/raddadengineer/agent-toolkit/main/install.ps1 | iex
+
+  # Local commands:
   .\install.ps1 -List
   .\install.ps1 -Global
   .\install.ps1 -Update
@@ -128,6 +144,76 @@ Examples:
   .\install.ps1 -Target C:\path\to\my-project -All
   .\install.ps1 -Target C:\path\to\my-project -Skill session-closer
 "@
+}
+
+function Invoke-WebInstall {
+    param(
+        [string]$CustomInstallDir,
+        [hashtable]$ForwardParams = @{}
+    )
+
+    $DestDir = $CustomInstallDir
+    if (-not $DestDir) {
+        if ($env:AGENT_TOOLKIT_DIR) {
+            $DestDir = $env:AGENT_TOOLKIT_DIR
+        } elseif (Test-Path "$HOME/agent-toolkit/.git") {
+            $DestDir = "$HOME/agent-toolkit"
+        } elseif (Test-Path "$HOME/.agent-toolkit/.git") {
+            $DestDir = "$HOME/.agent-toolkit"
+        } elseif (Test-Path "$HOME/agent-toolkit") {
+            $DestDir = "$HOME/agent-toolkit"
+        } else {
+            $DestDir = "$HOME/.agent-toolkit"
+        }
+    }
+
+    $RepoUrl = if ($env:AGENT_TOOLKIT_REPO) { $env:AGENT_TOOLKIT_REPO } else { "https://github.com/raddadengineer/agent-toolkit.git" }
+    $RepoBranch = if ($env:AGENT_TOOLKIT_BRANCH) { $env:AGENT_TOOLKIT_BRANCH } else { "main" }
+
+    Write-Host "🌐 agent-toolkit — Direct Web Installer [PowerShell]"
+    Write-Host "📁 Installation directory: $DestDir"
+
+    if (Get-Command git -ErrorAction SilentlyContinue) {
+        if (Test-Path (Join-Path $DestDir ".git")) {
+            Write-Host "🔄 Existing repository found at $DestDir. Updating..."
+            git -C $DestDir pull origin $RepoBranch
+        } else {
+            Write-Host "📥 Cloning $RepoUrl (branch: $RepoBranch)..."
+            $ParentDir = Split-Path -Parent $DestDir
+            if ($ParentDir -and !(Test-Path $ParentDir)) {
+                New-Item -ItemType Directory -Path $ParentDir -Force | Out-Null
+            }
+            git clone --depth 1 -b $RepoBranch $RepoUrl $DestDir
+        }
+    } else {
+        Write-Host "📥 Downloading repository archive ($RepoBranch)..."
+        if (!(Test-Path $DestDir)) {
+            New-Item -ItemType Directory -Path $DestDir -Force | Out-Null
+        }
+        $ZipUrl = "https://github.com/raddadengineer/agent-toolkit/archive/refs/heads/$RepoBranch.zip"
+        $TempZip = Join-Path ([System.IO.Path]::GetTempPath()) "agent-toolkit-$([System.Guid]::NewGuid().ToString('N')).zip"
+        Invoke-RestMethod -Uri $ZipUrl -OutFile $TempZip
+        $TempExtract = Join-Path ([System.IO.Path]::GetTempPath()) "agent-toolkit-extract-$([System.Guid]::NewGuid().ToString('N'))"
+        Expand-Archive -Path $TempZip -DestinationPath $TempExtract -Force
+        $ExtractedRoot = Get-ChildItem -Path $TempExtract -Directory | Select-Object -First 1
+        Copy-Item -Path "$($ExtractedRoot.FullName)/*" -Destination $DestDir -Recurse -Force
+        Remove-Item -Path $TempZip -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path $TempExtract -Recurse -Force -ErrorAction SilentlyContinue
+    }
+
+    $TargetScript = Join-Path $DestDir "install.ps1"
+    if (!(Test-Path $TargetScript)) {
+        Write-Error "❌ Error: $TargetScript not found after download."
+        exit 1
+    }
+
+    if ($ForwardParams.Count -eq 0) {
+        $ForwardParams['Global'] = $true
+    }
+
+    Write-Host "🚀 Running local installer: $TargetScript"
+    & $TargetScript @ForwardParams
+    exit $LASTEXITCODE
 }
 
 function Show-Components {
@@ -286,6 +372,33 @@ function Setup-Global {
 
 if ($Help) {
     Show-Usage
+    exit 0
+}
+
+$NeedsWebInstall = $false
+if ($Web) {
+    $NeedsWebInstall = $true
+} elseif (-not $ScriptDir -or -not (Test-Path $SkillsDir)) {
+    $NeedsWebInstall = $true
+}
+
+if ($NeedsWebInstall) {
+    $ForwardParams = @{}
+    if ($Target) { $ForwardParams['Target'] = $Target }
+    if ($Tool) { $ForwardParams['Tool'] = $Tool }
+    if ($Skill) { $ForwardParams['Skill'] = $Skill }
+    if ($Agent) { $ForwardParams['Agent'] = $Agent }
+    if ($All) { $ForwardParams['All'] = $true }
+    if ($Mode -and $Mode -ne 'symlink') { $ForwardParams['Mode'] = $Mode }
+    if ($Global) { $ForwardParams['Global'] = $true }
+    if ($Update) { $ForwardParams['Update'] = $true }
+    if ($List) { $ForwardParams['List'] = $true }
+
+    if ($ForwardParams.Count -eq 0) {
+        $ForwardParams['Global'] = $true
+    }
+
+    Invoke-WebInstall -CustomInstallDir $InstallDir -ForwardParams $ForwardParams
     exit 0
 }
 

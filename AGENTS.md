@@ -31,7 +31,7 @@ Welcome to `agent-toolkit`, a centralized library of reusable skills, specialize
 - `mcp/`: Native Model Context Protocol server configurations (`mcp_config.json`).
 - `tests/`: Deterministic unit tests validating synchronizers, compilers, compressors, and sentinels.
 - `bin/`: Global CLI entry point launchers (`bin/atk`, `bin/atk.ps1`) for cross-project execution.
-- `install.sh` / `install.ps1`: Multi-tool installers and symlink managers supporting Bash and PowerShell (`--mode symlink` and `--mode copy`).
+- `install.sh` / `install.ps1`: Multi-tool installers and symlink managers supporting Bash and PowerShell with direct web install (`curl` / `irm`), global linking (`--global`), and distribution modes (`--mode symlink` and `--mode copy`).
 
 ## 📜 Core Mandates & Engineering Discipline
 - **Conventions over preferences**: Strictly adhere to established repository structures and naming patterns.

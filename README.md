@@ -452,8 +452,35 @@ Pre-packaged Model Context Protocol servers:
 
 ### 🛠️ Step-by-Step Installation Guide
 
-#### Step 1: Clone `agent-toolkit` & Enable Global CLI
-Clone this repository once to a central tools or development folder on your machine:
+#### Step 1: Install `agent-toolkit` & Enable Global CLI
+
+Choose either direct web installation (fastest) or clone locally:
+
+##### Option A: Direct Web Install (Recommended — 1 Command)
+Install `agent-toolkit` and configure the global `atk` CLI launcher directly from the web without cloning manually:
+
+**macOS / Linux (Bash / Zsh):**
+```bash
+curl -fsSL https://raw.githubusercontent.com/raddadengineer/agent-toolkit/main/install.sh | bash
+```
+
+*Or install directly into a specific project from the web:*
+```bash
+curl -fsSL https://raw.githubusercontent.com/raddadengineer/agent-toolkit/main/install.sh | bash -s -- --target /path/to/my-project --tool all
+```
+
+**Windows / Cross-Platform (PowerShell):**
+```powershell
+irm https://raw.githubusercontent.com/raddadengineer/agent-toolkit/main/install.ps1 | iex
+```
+
+*Or install directly into a specific project from PowerShell:*
+```powershell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/raddadengineer/agent-toolkit/main/install.ps1))) -Target "C:\path\to\my-project" -Tool all
+```
+
+##### Option B: Clone & Install Locally
+Alternatively, clone this repository once to a central folder on your machine:
 ```bash
 git clone https://github.com/raddadengineer/agent-toolkit.git ~/agent-toolkit
 cd ~/agent-toolkit
@@ -527,12 +554,14 @@ If you only use a specific AI assistant, you can install just its configuration:
 ./install.sh --target /path/to/my-project --tool antigravity
 # (or ./install.sh --target /path/to/my-project --all)
 
-# 7. Global CLI & Repo Update Utilities:
+# 7. Web Installation, Global CLI & Repo Update Utilities:
+./install.sh --web          # Install or refresh central toolkit directly from web repository
 ./install.sh --global       # Symlink 'atk' into ~/.local/bin and configure shell profiles
 ./install.sh --powershell   # Explicitly configure PowerShell profile with 'atk' function
 ./install.sh --update       # Pull latest toolkit updates from origin main
 
 # PowerShell equivalents:
+.\install.ps1 -Web          # Install or refresh central toolkit directly from web repository
 .\install.ps1 -Global       # Install global 'atk' launcher & configure PowerShell profile
 .\install.ps1 -Update       # Pull latest updates and refresh configurations
 ```

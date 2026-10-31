@@ -13,10 +13,17 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SKILLS_DIR="${SCRIPT_DIR}/skills"
-AGENTS_DIR="${SCRIPT_DIR}/agents"
-EXPORT_SCRIPT="${SCRIPT_DIR}/scripts/export_adapters.py"
+ORIGINAL_ARGS=("$@")
+
+SCRIPT_SOURCE="${BASH_SOURCE[0]:-}"
+SCRIPT_DIR=""
+if [ -n "${SCRIPT_SOURCE}" ] && [ -e "${SCRIPT_SOURCE}" ]; then
+    SCRIPT_DIR="$(cd "$(dirname "${SCRIPT_SOURCE}")" && pwd)"
+fi
+
+SKILLS_DIR="${SCRIPT_DIR:+${SCRIPT_DIR}/skills}"
+AGENTS_DIR="${SCRIPT_DIR:+${SCRIPT_DIR}/agents}"
+EXPORT_SCRIPT="${SCRIPT_DIR:+${SCRIPT_DIR}/scripts/export_adapters.py}"
 
 TARGET_DIR=""
 MODE="symlink" # "symlink" or "copy"
@@ -28,12 +35,20 @@ LIST_ONLY=false
 INSTALL_GLOBAL=false
 INSTALL_POWERSHELL=false
 UPDATE_REPO=false
+WEB_INSTALL=false
+CUSTOM_INSTALL_DIR=""
+
+if [ -z "${SCRIPT_DIR}" ] || [ ! -d "${SCRIPT_DIR}/skills" ]; then
+    WEB_INSTALL=true
+fi
 
 print_usage() {
     cat <<EOF
-Usage: $(basename "$0") [options]
+Usage: $(basename "${0:-install.sh}") [options]
 
 Options:
+  -w, --web                Install directly from web repository (clones/updates ~/.agent-toolkit)
+      --install-dir <path> Custom central toolkit directory for web install (default: ~/.agent-toolkit)
   -t, --target <path>      Target project repository path (default: current directory)
       --tool <name>        Export configurations for a specific AI assistant:
                            all, claude, cursor, copilot, roo, windsurf, antigravity
@@ -49,15 +64,19 @@ Options:
   -h, --help               Display this help message
 
 Examples:
-  $(basename "$0") --list
-  $(basename "$0") --global
-  $(basename "$0") --powershell
-  $(basename "$0") --update
-  $(basename "$0") --target /path/to/my-project --tool all
-  $(basename "$0") --target /path/to/my-project --tool claude
-  $(basename "$0") --target /path/to/my-project --tool cursor
-  $(basename "$0") --target /path/to/my-project --all
-  $(basename "$0") --target /path/to/my-project --skill session-closer
+  # Direct web installation (one-liner via curl):
+  curl -fsSL https://raw.githubusercontent.com/raddadengineer/agent-toolkit/main/install.sh | bash
+
+  # Local commands:
+  $(basename "${0:-install.sh}") --list
+  $(basename "${0:-install.sh}") --global
+  $(basename "${0:-install.sh}") --powershell
+  $(basename "${0:-install.sh}") --update
+  $(basename "${0:-install.sh}") --target /path/to/my-project --tool all
+  $(basename "${0:-install.sh}") --target /path/to/my-project --tool claude
+  $(basename "${0:-install.sh}") --target /path/to/my-project --tool cursor
+  $(basename "${0:-install.sh}") --target /path/to/my-project --all
+  $(basename "${0:-install.sh}") --target /path/to/my-project --skill session-closer
 EOF
 }
 
@@ -196,6 +215,31 @@ with open(path, 'w', encoding='utf-8') as f:
 " "${profile_path}" "${atk_ps1}" "${start_marker}" "${end_marker}"
 }
 
+setup_shell_path() {
+    local target_dir="${HOME}/.local/bin"
+    case ":${PATH}:" in
+        *":${target_dir}:"*)
+            return 0
+            ;;
+    esac
+
+    local profiles=()
+    [ -f "${HOME}/.zshrc" ] && profiles+=("${HOME}/.zshrc")
+    [ -f "${HOME}/.bashrc" ] && profiles+=("${HOME}/.bashrc")
+    [ -f "${HOME}/.bash_profile" ] && profiles+=("${HOME}/.bash_profile")
+
+    for prof in ${profiles[@]+"${profiles[@]}"}; do
+        if [ -f "${prof}" ]; then
+            if ! grep -q "\.local/bin" "${prof}" 2>/dev/null; then
+                echo '' >> "${prof}"
+                echo '# Added by agent-toolkit' >> "${prof}"
+                echo 'export PATH="$HOME/.local/bin:$PATH"' >> "${prof}"
+                echo "🔄 Added ${target_dir} to PATH in ${prof}"
+            fi
+        fi
+    done
+}
+
 setup_global() {
     local bin_source="${SCRIPT_DIR}/bin/atk"
     local bin_source_ps1="${SCRIPT_DIR}/bin/atk.ps1"
@@ -214,11 +258,117 @@ setup_global() {
     echo "✅ Successfully installed global 'atk' and 'agent-toolkit' into ${target_dir}"
     echo "   Ensure ${target_dir} is in your PATH."
 
+    setup_shell_path
     setup_powershell
+}
+
+handle_web_install() {
+    local install_dir="${CUSTOM_INSTALL_DIR:-}"
+    if [ -z "${install_dir}" ]; then
+        if [ -n "${AGENT_TOOLKIT_DIR:-}" ]; then
+            install_dir="${AGENT_TOOLKIT_DIR}"
+        elif [ -d "${HOME}/agent-toolkit/.git" ]; then
+            install_dir="${HOME}/agent-toolkit"
+        elif [ -d "${HOME}/.agent-toolkit/.git" ]; then
+            install_dir="${HOME}/.agent-toolkit"
+        elif [ -d "${HOME}/agent-toolkit" ]; then
+            install_dir="${HOME}/agent-toolkit"
+        else
+            install_dir="${HOME}/.agent-toolkit"
+        fi
+    fi
+
+    local repo_url="${AGENT_TOOLKIT_REPO:-https://github.com/raddadengineer/agent-toolkit.git}"
+    local repo_branch="${AGENT_TOOLKIT_BRANCH:-main}"
+
+    echo "🌐 agent-toolkit — Direct Web Installer"
+    echo "📁 Installation directory: ${install_dir}"
+
+    if command -v git >/dev/null 2>&1; then
+        if [ -d "${install_dir}/.git" ]; then
+            echo "🔄 Existing repository found at ${install_dir}. Updating..."
+            git -C "${install_dir}" pull origin "${repo_branch}" || true
+        else
+            echo "📥 Cloning ${repo_url} (branch: ${repo_branch})..."
+            mkdir -p "$(dirname "${install_dir}")"
+            git clone --depth 1 -b "${repo_branch}" "${repo_url}" "${install_dir}"
+        fi
+    else
+        echo "📥 Downloading repository archive (${repo_branch})..."
+        mkdir -p "${install_dir}"
+        local archive_url="https://github.com/raddadengineer/agent-toolkit/archive/refs/heads/${repo_branch}.tar.gz"
+        if command -v curl >/dev/null 2>&1; then
+            curl -fsSL "${archive_url}" | tar -xz --strip-components=1 -C "${install_dir}"
+        elif command -v wget >/dev/null 2>&1; then
+            wget -qO- "${archive_url}" | tar -xz --strip-components=1 -C "${install_dir}"
+        else
+            echo "❌ Error: Neither git, curl, nor wget was found. Cannot download agent-toolkit."
+            exit 1
+        fi
+    fi
+
+    local target_script="${install_dir}/install.sh"
+    if [ ! -f "${target_script}" ]; then
+        echo "❌ Error: ${target_script} not found after download."
+        exit 1
+    fi
+    chmod +x "${target_script}"
+
+    local forward_args=()
+    local skip_next=false
+    for arg in ${ORIGINAL_ARGS[@]+"${ORIGINAL_ARGS[@]}"}; do
+        if [ "${skip_next}" = true ]; then
+            skip_next=false
+            continue
+        fi
+        case "$arg" in
+            -w|--web)
+                continue
+                ;;
+            --install-dir)
+                skip_next=true
+                continue
+                ;;
+            --install-dir=*)
+                continue
+                ;;
+            *)
+                forward_args+=("$arg")
+                ;;
+        esac
+    done
+
+    local has_action=false
+    for farg in ${forward_args[@]+"${forward_args[@]}"}; do
+        case "$farg" in
+            -t|--target|-s|--skill|-a|--agent|--all|--tool|-g|--global|--link|-p|--powershell|-u|--update|-l|--list)
+                has_action=true
+                ;;
+        esac
+    done
+
+    if [ "${has_action}" = false ]; then
+        forward_args+=("--global")
+    fi
+
+    echo "🚀 Running local installer: ${target_script} ${forward_args[*]:-}"
+    exec bash "${target_script}" ${forward_args[@]+"${forward_args[@]}"}
 }
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
+        -w|--web)
+            WEB_INSTALL=true
+            shift
+            ;;
+        --install-dir)
+            CUSTOM_INSTALL_DIR="$2"
+            shift 2
+            ;;
+        --install-dir=*)
+            CUSTOM_INSTALL_DIR="${1#*=}"
+            shift
+            ;;
         -t|--target)
             TARGET_DIR="$2"
             shift 2
@@ -270,6 +420,11 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+if [ "${WEB_INSTALL}" = true ]; then
+    handle_web_install
+    exit 0
+fi
 
 if [ "${UPDATE_REPO}" = true ]; then
     echo "🔄 Updating agent-toolkit repository..."
