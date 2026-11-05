@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [v1.2.0] — 2026-11-04
+
+### 🚀 Features
+- implement solo developer scoped memory & offline dreaming system (7fc0b03)
+- add direct web installation option for Bash and PowerShell (28f2b8c)
+
+### 🔧 Maintenance & Chores
+- docs: modularize documentation into subpages and streamline README (9d882e3)
+- Discover and refresh existing installations (f1dcfd4)
+
+---
+
 ## [v1.1.0] — 2026-10-23
 
 ### 🚀 Features

@@ -257,7 +257,7 @@ case "${COMMAND}" in
         setup_link
         ;;
     version|-v|--version)
-        atk_ver="$(git -C "${TOOLKIT_DIR}" describe --tags --abbrev=0 2>/dev/null || echo "v1.1.0")"
+        atk_ver="$(git -C "${TOOLKIT_DIR}" describe --tags --abbrev=0 2>/dev/null || echo "v1.2.0")"
         echo "agent-toolkit (atk) ${atk_ver}"
         echo "Root: ${TOOLKIT_DIR}"
         ;;

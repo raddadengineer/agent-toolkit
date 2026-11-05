@@ -306,7 +306,7 @@ switch ($Command) {
     }
     { $_ -in @('version', '-v', '--version') } {
         $atkVer = git -C $ToolkitDir describe --tags --abbrev=0 2>$null
-        if (-not $atkVer) { $atkVer = "v1.1.0" }
+        if (-not $atkVer) { $atkVer = "v1.2.0" }
         Write-Host "agent-toolkit (atk) $atkVer"
         Write-Host "Root: $ToolkitDir"
     }
