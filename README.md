@@ -6,493 +6,13 @@ Instead of recreating session scripts, agent definitions, and context rules acro
 
 ---
 
-## 📂 Repository Structure
+## ⚡ 1-Command Quick Start
 
-```
-agent-toolkit/
-├── README.md                          # Documentation and comprehensive usage guide
-├── CHANGELOG.md                       # Keep-a-Changelog release history
-├── .github/
-│   └── workflows/
-│       └── ci.yml                     # Hardened GitHub Actions CI & quality gates
-├── bin/
-│   ├── atk                            # Global CLI launcher (Bash, symlinked to ~/.local/bin/atk)
-│   └── atk.ps1                        # Global CLI launcher (PowerShell)
-├── install.sh                         # Multi-tool installer and symlink manager (Bash)
-├── install.ps1                        # Multi-tool installer and symlink manager (PowerShell)
-├── skills/
-│   ├── context-optimizer/             # Token optimization & AST context compression skill
-│   │   ├── SKILL.md                   # Token profiling & skeletonization workflow
-│   │   └── scripts/
-│   │       └── compress_context.py    # Multi-language AST skeletonizer & context packer
-│   ├── session-starter/               # Universal session kickoff & orientation skill
-│   │   ├── SKILL.md                   # Orientation workflow & handover ingest
-│   │   └── scripts/
-│   │       └── prime_session.py       # Ledger reader & branch/context health auditor
-│   ├── session-closer/                # Universal session conclusion & handover skill
-│   │   ├── SKILL.md                   # Handover workflow & ledger prepender
-│   │   └── scripts/
-│   │       └── sync_context.py        # Multi-file context synchronizer & session ledger
-│   ├── pr-prep/                       # Pre-flight PR auditor & description generator
-│   │   ├── SKILL.md                   # PR preparation & sanitization workflow
-│   │   └── scripts/
-│   │       └── audit_pr.py            # Diff auditor (secrets, debug logs) & markdown generator
-│   ├── code-reviewer/                 # Adversarial code review & diff inspection skill
-│   │   ├── SKILL.md                   # 5-dimension review workflow & verdicts
-│   │   └── scripts/
-│   │       └── review_code.py         # Automated diff & error swallowing inspector
-│   ├── test-engineer/                 # Deterministic test suite & boundary matrix skill
-│   │   ├── SKILL.md                   # Red-Green test automation workflow
-│   │   └── scripts/
-│   │       └── scaffold_tests.py      # Test suite & boundary matrix scaffolder
-│   ├── system-architect/              # Architecture Decision Records (ADR) & schema skill
-│   │   ├── SKILL.md                   # System boundary & ADR workflow
-│   │   └── scripts/
-│   │       └── manage_adr.py          # ADR initializer, indexer & auditor
-│   ├── debugger/                      # Stack trace analysis & automated git bisect skill
-│   │   ├── SKILL.md                   # Root-cause investigation & repro workflow
-│   │   └── scripts/
-│   │       └── bisect_debugger.py     # Minimal reproduction harness & git bisect engine
-│   ├── security-auditor/              # SAST code scanner & CVE dependency auditor skill
-│   │   ├── SKILL.md                   # Pre-flight security & secret audit workflow
-│   │   └── scripts/
-│   │       └── audit_security.py      # AST vulnerability & credential leak scanner
-│   ├── database-engineer/             # Reversible migration & zero-downtime schema skill
-│   │   ├── SKILL.md                   # Migration safety & lock contention workflow
-│   │   └── scripts/
-│   │       └── verify_migrations.py   # DDL rollback proof & lock hazard validator
-│   ├── container-engineer/            # Multi-stage Dockerfile hardening & caching skill
-│   │   ├── SKILL.md                   # Container security & layer optimization workflow
-│   │   └── scripts/
-│   │       └── harden_docker.py       # Dockerfile scaffolder & security linter
-│   ├── ci-workflow/                   # CI/CD pipeline synthesis & workflow security skill
-│   │   ├── SKILL.md                   # GitHub Actions hardening workflow
-│   │   └── scripts/
-│   │       └── synthesize_ci.py       # CI pipeline synthesizer & supply-chain auditor
-│   ├── dependency-auditor/            # Multi-ecosystem dependency manifest auditor skill
-│   │   ├── SKILL.md                   # Manifest hygiene & wildcard prevention workflow
-│   │   └── scripts/
-│   │       └── audit_deps.py          # Wildcard, lockfile & deprecation scanner
-│   ├── release-manager/               # SemVer & Conventional Commits release skill
-│   │   ├── SKILL.md                   # Semantic Versioning & changelog workflow
-│   │   └── scripts/
-│   │       └── manage_release.py      # SemVer bump calculator & changelog generator
-│   ├── memory-manager/                # Scoped persistent developer memory & recall skill
-│   │   ├── SKILL.md                   # Memory storage, querying & SHA-256 integrity
-│   │   └── scripts/
-│   │       └── manage_memory.py       # Scoped memory engine & index manager
-│   ├── dreamer/                       # Out-of-band offline memory consolidation skill
-│   │   ├── SKILL.md                   # Autonomous transcript analysis & dreaming loop
-│   │   └── scripts/
-│   │       └── dream_consolidator.py  # Offline pattern extractor & proposal generator
-│   └── doc-sync/                      # Documentation & schema drift sentinel skill
-│       ├── SKILL.md                   # Drift detection & link verification workflow
-│       └── scripts/
-│           └── check_doc_drift.py     # Filesystem vs README drift sentinel
-├── memory/                            # Structured persistent repository memory
-│   ├── index.json                     # Fast keyword & tag index with SHA-256 hashes
-│   ├── patterns/                      # Proven solution workflows that succeeded
-│   ├── anti-patterns/                 # Known gotchas, bugs, and traps to avoid
-│   ├── rules/                         # Operational mandates and quality constraints
-│   └── decisions/                     # Architecture Decision Records and notes
-├── scripts/
-│   ├── compress_context.py            # Universal token optimizer & context packer
-│   ├── export_adapters.py             # Multi-tool AI assistant configuration compiler
-│   ├── manage_installs.py             # Global installation registry & multi-project updater
-│   ├── guard_command.py               # PreToolUse destructive shell command safety guard
-│   └── auto_format.py                 # PostToolUse multi-language code formatter
-├── agents/
-│   ├── software_engineer/             # Tech Lead orchestrator & surgical engineering subagent
-│   ├── code_reviewer/                 # Adversarial read-only senior code review subagent
-│   ├── test_engineer/                 # Deterministic test automation & Red-Green proof subagent
-│   ├── system_architect/              # High-level architecture, contracts & ADR subagent
-│   ├── context_optimizer/             # Token profiling & AST skeleton compression subagent
-│   ├── debugger/                      # Minimal reproduction (repro.sh) & git bisect subagent
-│   ├── security_auditor/              # AppSec SAST scanner & credential leak subagent
-│   ├── database_engineer/             # Zero-downtime migration & lock contention subagent
-│   ├── devops_engineer/               # Container, CI/CD, dependency & release subagent
-│   └── research/                      # Documentation & web research sandbox subagent
-├── hooks/
-│   └── hooks.json                     # Antigravity PreToolUse safety guards & PostToolUse formatters
-├── mcp/
-│   └── mcp_config.json                # Native MCP suite: Playwright, GitHub, SQLite
-└── tests/
-    ├── test_atk_cli.py                # Unit tests for bin/atk global CLI
-    ├── test_powershell_install.py     # Unit tests for PowerShell installer and bin/atk.ps1
-    ├── test_manage_installs.py        # Unit tests for global installation registry
-    ├── test_sync_context.py           # Unit tests for sync_context.py
-    ├── test_prime_session.py          # Unit tests for prime_session.py
-    ├── test_audit_pr.py               # Unit tests for audit_pr.py
-    ├── test_review_code.py            # Unit tests for review_code.py
-    ├── test_scaffold_tests.py         # Unit tests for scaffold_tests.py
-    ├── test_manage_adr.py             # Unit tests for manage_adr.py
-    ├── test_harden_docker.py          # Unit tests for harden_docker.py
-    ├── test_synthesize_ci.py          # Unit tests for synthesize_ci.py
-    ├── test_audit_deps.py             # Unit tests for audit_deps.py
-    ├── test_manage_release.py         # Unit tests for manage_release.py
-    ├── test_export_adapters.py        # Unit tests for export_adapters.py
-    ├── test_compress_context.py       # Unit tests for compress_context.py
-    ├── test_bisect_debugger.py        # Unit tests for bisect_debugger.py
-    ├── test_audit_security.py         # Unit tests for audit_security.py
-    ├── test_verify_migrations.py      # Unit tests for verify_migrations.py
-    └── test_check_doc_drift.py        # Unit tests for check_doc_drift.py
-```
-
----
-
-## 📖 How to Actually Use the Tools, Skills & Agents
-
-Once you install `agent-toolkit` into your project (via `./install.sh --target ~/my-project --tool all`), here is how you interact with everything across your daily development loop.
-
-### 🔄 The End-to-End Daily Workflow Loop
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ 1. 🌅 KICK OFF: Orient & read handover notes (/session-starter)              │
-│ 2. ⚡ OPTIMIZE: Build 90% compressed AST repo map (compress_context.py)       │
-│ 3. 🛠️ IMPLEMENT: Surgical coding & zero false verification (software_engineer)│
-│ 4. 🛡️ AUDIT: Adversarial read-only code review (code_reviewer / /code-review) │
-│ 5. 🚀 PRE-FLIGHT: Diff leak audit & PR description generator (/pr-prep)       │
-│ 6. 🌙 WRAP UP: Record accomplishments & sync context files (/session-closer) │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
----
-
-### 1. In AI Chat Sessions (By Assistant)
-
-Depending on which AI assistant you use, here is how to invoke the skills and agents:
-
-#### A. Google Antigravity & Gemini CLI (`agy`)
-Skills are loaded automatically via **progressive disclosure** from `.agents/skills/`, and subagents are defined in `.agents/agents/`:
-* **Kick off a session**: Type `"Prime the workspace and orient me on previous handover items."` (triggers `session-starter`).
-* **Optimize context**: Type `"Profile the repo token footprint and skeletonize the services."` (triggers `context-optimizer`).
-* **Surgical coding**: Type `"Invoke software_engineer subagent to implement the Stripe webhook handler."` (triggers `software_engineer`).
-* **Code review**: Type `"Have code_reviewer audit the uncommitted diff for concurrency and security issues."` (triggers `code_reviewer`).
-* **Pre-flight PR**: Type `"Run pr-prep to audit the diff and draft the pull request description."` (triggers `pr-prep`).
-* **Close the session**: Type `"Wrap up this session, record our progress in SESSION_LOG.md, and sync context files."` (triggers `session-closer`).
-
-#### B. Claude Code (Anthropic CLI)
-The toolkit exports native markdown slash commands to `.claude/commands/`:
-* `/session-starter`: Ingests `SESSION_LOG.md`, verifies git branch, and establishes a clean baseline.
-* `/compress-context`: Profiles token consumption and generates an AST skeleton map.
-* `/code-review`: Adopts the read-only adversarial reviewer persona to audit the diff.
-* `/pr-prep`: Scans diff for secrets and debug statements, verifies tests, and outputs a ready-to-copy PR.
-* `/session-closer`: Prepens a structured ledger entry to `SESSION_LOG.md` and synchronizes `AGENTS.md` & `CLAUDE.md`.
-
-#### C. Cursor
-The toolkit exports Cursor 2.0 MDC rules to `.cursor/rules/`:
-* **Always-On Discipline**: `engineering-standards.mdc` automatically enforces surgical modifications and zero false verification in every interaction.
-* **On-Demand Skills**: In Cursor Chat / Composer, reference the rules directly:
-  * `@session-workflows.mdc`: *"Run the session start procedure"* or *"Wrap up this session"*.
-  * `@code-reviewer.mdc`: *"Review my recent changes in this branch against our review standards"*.
-  * `@context-optimizer.mdc`: *"Generate an AST skeleton map for this repository"*.
-  * `@pr-prep.mdc`: *"Audit my changes and write a pull request description"*.
-
-#### D. GitHub Copilot (VS Code / JetBrains)
-The toolkit exports prompt templates to `.github/prompts/` and repo rules to `.github/copilot-instructions.md`:
-* Type `/session-starter` in Copilot Chat to ingest handover notes.
-* Type `/compress-context` to summarize codebase architecture with minimal tokens.
-* Type `/code-review` to inspect the active diff for concurrency and security edge cases.
-* Type `/pr-prep` to prepare pull request documentation.
-* Type `/session-closer` to update `SESSION_LOG.md`.
-
-#### E. Roo Code / Cline / OpenCode
-The toolkit exports custom multi-agent modes to `.roomodes` and `.clinerules`:
-* **Senior Software Engineer mode**: Select from the mode dropdown for active feature implementation and test running (`read`, `edit`, `command` permissions).
-* **Code Reviewer mode**: Select from the mode dropdown for safe, read-only code audits (`read`, `command` permissions only—cannot accidentally mutate code).
-
----
-
-### 2. Standalone Terminal CLI Recipes
-
-All core engines can also be run directly from your terminal or integrated into CI/CD and git hooks:
-
-#### ⚡ Token Optimizer & Context Compressor (`compress_context.py`)
-```bash
-# 1. Profile repository token consumption (see where tokens are burned):
-python3 .agents/skills/context-optimizer/scripts/compress_context.py --profile
-
-# 2. Pack entire repository into an ultra-dense hybrid map under an 8,000 token budget:
-python3 .agents/skills/context-optimizer/scripts/compress_context.py --hybrid --budget 8000 --output REPO_MAP.md
-
-# 3. Skeletonize a single large file to inspect its API without full bodies (85-95% token savings):
-python3 .agents/skills/context-optimizer/scripts/compress_context.py --file src/ComplexService.swift --skeleton
-
-# 4. Generate pure AST skeleton representation for the entire repo:
-python3 .agents/skills/context-optimizer/scripts/compress_context.py --skeleton --output REPO_MAP.md
-
-# 5. Output in XML format for LLM prompting:
-python3 .agents/skills/context-optimizer/scripts/compress_context.py --pack --format xml --budget 12000
-```
-
-#### 🧭 Session Starter (`prime_session.py`)
-```bash
-# 1. View complete session kickoff brief (branch status, sync status, previous handover):
-python3 .agents/skills/session-starter/scripts/prime_session.py
-
-# 2. Output only pending action items from the previous session:
-python3 .agents/skills/session-starter/scripts/prime_session.py --handover-only
-
-# 3. Output brief in structured JSON (for script integration):
-python3 .agents/skills/session-starter/scripts/prime_session.py --json
-```
-
-#### 🔄 Context Sync & Session Ledger (`sync_context.py`)
-```bash
-# 1. Verify all context files (AGENTS.md, CLAUDE.md, GEMINI.md) have identical SHA-256 hashes:
-python3 .agents/skills/session-closer/scripts/sync_context.py --check
-
-# 2. Sync all context files from the most recently modified (or specify source file):
-python3 .agents/skills/session-closer/scripts/sync_context.py --sync
-python3 .agents/skills/session-closer/scripts/sync_context.py --sync AGENTS.md
-
-# 3. Check status and checksums of tracked files:
-python3 .agents/skills/session-closer/scripts/sync_context.py --status
-
-# 4. Initialize baseline context files and SESSION_LOG.md in a fresh repository:
-python3 .agents/skills/session-closer/scripts/sync_context.py --init
-
-# 5. Programmatically record a completed session entry:
-python3 .agents/skills/session-closer/scripts/sync_context.py --log \
-  --title "Payment Gateway Integration" \
-  --goal "Add Stripe webhook verification" \
-  --change "Implemented WebhookHandler.swift" \
-  --change "Added signature verification unit tests" \
-  --validation "All 24 unit tests passed (exit 0)" \
-  --next-step "Configure webhook endpoint in Stripe dashboard"
-```
-
-#### 🚀 PR Pre-Flight Auditor (`audit_pr.py`)
-```bash
-# 1. Audit current diff against base branch (fails with exit code 1 if debug prints or secrets are found):
-python3 .agents/skills/pr-prep/scripts/audit_pr.py --check
-
-# 2. Audit against a specific base branch (e.g. main or staging):
-python3 .agents/skills/pr-prep/scripts/audit_pr.py --base main --check
-
-# 3. Generate a complete, ready-to-copy Markdown PR description:
-python3 .agents/skills/pr-prep/scripts/audit_pr.py --generate-desc --title "feat: user authentication"
-
-# 4. Output audit results in JSON format:
-python3 .agents/skills/pr-prep/scripts/audit_pr.py --json
-```
-
----
-
-## 🧰 Detailed Component Reference
-
-### 1. ⚡ `context-optimizer` (Skill)
-Compresses codebase context and minimizes token consumption by **85–95%**:
-- **Multi-Language AST Skeletonizer**: Extracts classes, interfaces, method signatures, types, and docstrings while stripping implementation bodies (`Python`, `TypeScript/JavaScript`, `Swift`, `Go`, `Rust`).
-- **Token Heatmap Profiler**: Analyzes token footprint across directories and flags oversized files or accidental lockfile/bundle bloat.
-- **Repository Context Packer**: Bundles projects into high-density Markdown or XML prompts under configurable token budgets (e.g. `--budget 8000`).
-- **Hybrid Mode**: Retains full content for key entry points (`README.md`, package manifests) while skeletonizing all underlying code.
-
-### 2. 🧭 `session-starter` (Skill)
-The orientation bookend to `session-closer`. Ingests handover notes from the previous session, checks git branch health, verifies context synchronization, and establishes a clean baseline before touching code.
-
-### 3. 🔄 `session-closer` (Skill)
-Guides AI agents through a disciplined 5-step handover procedure at the end of a coding session:
-1. **Analyze Accomplishments**: Scans `git status --short` and `git diff --stat`.
-2. **Record in `SESSION_LOG.md`**: Prepends a clean, dated markdown entry documenting the session goal, specific changes, validation proof, and next steps.
-3. **Synchronize Context Files**: Keeps `AGENTS.md`, `CLAUDE.md`, and `GEMINI.md` bit-for-bit identical via SHA-256 checks.
-4. **Verify Build & Tests**: Runs ecosystem-specific test commands under a strict **Zero False Verification** policy.
-5. **Deliver Handover Summary**: Provides an executive report summarizing completed work and immediate next actions.
-
-### 4. 🚀 `pr-prep` (Skill)
-Pre-flight pull request audit and description authoring:
-- **Diff & Leak Audit**: Scans diffs for forgotten `console.log`, `print()`, `debugger`, and hardcoded secrets/API keys.
-- **Build & Test Verification**: Guarantees test pass receipts before PR opening.
-- **Generate PR Markdown**: Creates ready-to-copy PR summaries complete with test receipts and verification checklists.
-
-### 5. 👨‍💻 `software_engineer` (Subagent & Tech Lead)
-A surgical, senior staff software engineer and Tech Lead orchestrator:
-- **Evidence over assumption**: Bases all diagnoses on compiler traces, test logs, and actual source code.
-- **Conventions over preferences**: Strictly adopts host repository conventions rather than imposing external paradigms.
-- **Zero false verification**: Refuses to claim a test or build succeeded without an exit code `0`.
-- **Swarm Orchestration**: Leverages `invoke_subagent`, `define_subagent`, and `manage_subagents` to delegate isolated workstreams to `test_engineer`, `system_architect`, and `research`.
-- **Peer-Review Gate**: Automatically audits diffs via `code_reviewer` before completing multi-component work.
-- **Orchestrated Lifecycle**: `Analyze ──> Delegate/Research ──> Concurrent Dev & Tests ──> Peer Review Gate ──> Validate (Exit 0) ──> Report`.
-
-### 6. 🛡️ `code_reviewer` (Subagent) & `code-reviewer` (Skill)
-An adversarial, read-only senior code review persona and automated diff inspector (`review_code.py` / `atk review`):
-- **Read-only mandate**: Focuses purely on analysis, critique, and security without direct edits.
-- **5 Review Dimensions**: Security & Secrets, Concurrency & Thread Safety, Error Handling & Swallowing, Architecture & Scope, and Test Quality.
-- **Automated Diff Inspection**: Detects silent error swallowing (`except: pass`), blocking sleep in async context, and missing test coverage.
-- **Structured Output**: Delivers actionable verdicts (`APPROVE`, `REQUEST CHANGES`) with severity ratings (`CRITICAL`, `WARNING`, `NIT`).
-
-### 7. 🧪 `test_engineer` (Subagent) & `test-engineer` (Skill)
-A specialized quality and test automation subagent and test suite scaffolder (`scaffold_tests.py` / `atk test-gen`):
-- **Flake-free determinism**: Employs condition-based polling and strict state isolation; bans arbitrary sleeps.
-- **Red-Green verification**: Proves bug reproduction by verifying tests fail before the fix and pass cleanly after.
-- **Comprehensive coverage**: Generates boundary coverage matrices and scaffolds deterministic `unittest` and `pytest` suites.
-- **Targeted Mocking**: Mocks external network and payment boundaries, never internal domain models.
-
-### 8. 📐 `system_architect` (Subagent) & `system-architect` (Skill)
-A principal systems architecture, schema modeling, and Architecture Decision Record (ADR) manager (`manage_adr.py` / `atk adr`):
-- **Read-only design posture**: Inspects dependency structures, module interfaces, and data models without premature code edits.
-- **Contract & schema design**: Formulates strongly-typed schemas, interface boundaries, and backwards-compatible migrations.
-- **ADR Management**: Initializes, creates, indexes, and audits Architecture Decision Records in `docs/adr/` with Michael Nygard templates.
-
-### 9. ⚡ `context_optimizer` (Subagent & Skill)
-A specialized token optimization and AST context compression subagent:
-- **Token Profiling**: Profiles repository-wide token consumption and flags oversized bloat or accidental fixtures.
-- **AST Skeleton Extraction**: Extracts class and method signatures for Python, TypeScript, Swift, Go, and Rust with 85–95% token savings.
-- **Repo Map Packaging**: Packs multi-module projects into high-density Markdown/XML prompts (`REPO_MAP.md`) under strict token budgets.
-
-### 10. 🔬 `debugger` (Subagent & Skill)
-A root-cause investigation and regression bisection subagent:
-- **Reproduction First**: Authors standalone reproduction harnesses (`repro.sh` / `repro.py`) that exit `1` on failure before touching production code.
-- **Automated Git Bisect**: Runs binary search across commit history with an automated test command to isolate the exact breaking commit.
-- **Stack Trace Deobfuscator**: Pinpoints originating call site from Python, JS/TS, Swift, and Go stack traces.
-
-### 11. 🛡️ `security_auditor` (Subagent & Skill)
-An application security (AppSec) and static analysis subagent:
-- **SAST Scanner**: Flags SQL injection, command execution (`shell=True`, `eval`), and unsafe deserialization.
-- **Secret & Key Hygiene**: Scans for leaked AWS keys, GitHub tokens, and private key blocks.
-- **Dependency Audit**: Inspects package manifests (`package.json`, `requirements.txt`, `Cargo.toml`) for known CVE hazards.
-
-### 12. 🗄️ `database_engineer` (Subagent & Skill)
-A database reliability and zero-downtime schema subagent:
-- **Reversibility Proof**: Enforces that every forward migration has an active, tested downgrade/rollback counterpart.
-- **Lock Contention Prevention**: Blocks dangerous DDL anti-patterns like `ADD COLUMN NOT NULL` without `DEFAULT` and synchronous index creation.
-- **Query Plan Optimization**: Guides `EXPLAIN ANALYZE` reviews for hot path database queries.
-
-### 13. 📖 `doc-sync` (Skill)
-A documentation and schema drift sentinel:
-- **Drift Detection**: Verifies that documented skills, subagents, and slash commands match actual disk contents.
-- **Broken Link Verification**: Flags broken internal markdown links across repository guides.
-
-### 14. 🐳 `container-engineer` (Skill) & `devops_engineer` (Subagent)
-Production containerization, Dockerfile hardening (`harden_docker.py` / `atk docker`), and DevOps orchestration:
-- **Multi-Stage Scaffolding**: Generates minimal, non-root, multi-stage Dockerfiles and `.dockerignore` files for Python, Node, Go, and Rust.
-- **Security & Caching Auditing**: Flags root user execution (`DOCKER-ROOT-USER`), unpinned `:latest` tags, baked secrets, and cache-busting `COPY . .` commands.
-
-### 15. 🔄 `ci-workflow` (Skill)
-CI/CD pipeline synthesizer and workflow security sentinel (`synthesize_ci.py` / `atk ci`):
-- **Pipeline Synthesis**: Scaffolds GitHub Actions workflows (`.github/workflows/ci.yml`) wired to test matrices, security checks, and context synchronizers.
-- **Supply-Chain Auditing**: Scans workflows for unpinned `@main` actions, missing job timeouts, and overly permissive default tokens.
-
-### 16. 📦 `dependency-auditor` (Skill)
-Multi-ecosystem dependency security scanner and manifest auditor (`audit_deps.py` / `atk dep`):
-- **Wildcard Detection**: Catches dangerous wildcard dependencies (`*`, `latest`) in Python, Node, Go, and Rust.
-- **Hygiene & Deprecation**: Flags missing lockfiles, unpinned packages, and known deprecated libraries.
-
-### 17. 🚀 `release-manager` (Skill)
-Semantic versioning and Conventional Commits changelog manager (`manage_release.py` / `atk release`):
-- **SemVer Calculation**: Analyzes commit history since the last tag and recommends major, minor, or patch version bumps.
-- **Changelog & Notes**: Automatically compiles `CHANGELOG.md` sections and drafts GitHub Release notes.
-
-### 18. 🧠 `memory-manager` (Skill)
-Scoped developer memory store and recall engine (`manage_memory.py` / `atk memory`):
-- **Structured Categories**: Organizes institutional knowledge into `patterns/`, `anti-patterns/`, `rules/`, and `decisions/`.
-- **Indexed Search & Integrity**: Sub-millisecond keyword, tag, and content recall with SHA-256 integrity audits.
-- **Multi-Tool Persistence**: Accessible across Claude Code, Cursor, Antigravity, Gemini CLI, and Windsurf without context rot.
-
-### 19. 🌙 `dreamer` (Skill)
-Anthropic-style out-of-band offline memory consolidation skill (`dream_consolidator.py` / `atk dream`):
-- **Autonomous Transcript Digestion**: Parses session logs (`SESSION_LOG.md`) and conversation execution transcripts offline without distracting from active coding.
-- **Pattern & Trap Extraction**: Detects recurring error loops, failing tests that were resolved, and winning solution sequences.
-- **Human-in-the-Loop Gate**: Produces structured memory proposals with supporting rationale for one-click approval or auto-promotion.
-
-### 20. 📚 `research` (Subagent)
-Technical research and documentation sandbox subagent:
-- **Context Isolation**: Offloads heavy API documentation, RFC reading, and web searches so raw HTML/Markdown dumps do not pollute the primary coding context.
-- **Version-Pinned Distillation**: Inspects local package manifests first and returns concise signatures, minimal working snippets, and primary citations.
-
-### 21. 🪝 Lifecycle Hooks & Auto-Formatters (`hooks.json`)
-Native Antigravity lifecycle hooks:
-- **`PreToolUse` Safety Guard**: Inspects shell commands before execution and blocks destructive actions (`rm -rf /`, force pushes to `main`, disk overwrites).
-- **`PostToolUse` Auto-Formatter**: Runs language formatters (`ruff`, `prettier`, `swiftformat`, `gofmt`) automatically on modified files.
-
-### 22. 🔌 Native MCP Suite (`mcp_config.json`)
-Pre-packaged Model Context Protocol servers:
-- **Playwright**: Headless browser automation, visual inspection, and live DOM testing.
-- **GitHub**: Remote CI/CD log inspection (`gh run view`), issue lookup, and PR review triage.
-- **SQLite**: Local SQL inspection and execution plan auditing.
-
----
-
-## 🌐 Multi-Tool AI Ecosystem Support
-
-`agent-toolkit` acts as the single source of truth across all major AI coding assistants. Use `./install.sh --tool <name>` to export native configurations:
-
-| Tool | Export Path | Native Integration |
-| :--- | :--- | :--- |
-| **Claude Code** | `.claude/commands/`<br>`CLAUDE.md` | 17 interactive slash commands (`/session-starter`, `/code-review`, `/container-engineer`, `/ci-workflow`, `/release-manager`, `/memory-manager`, `/dreamer`, etc.) |
-| **Cursor** | `.cursor/rules/*.mdc`<br>`.cursorrules` | 16 Cursor 2.0 MDC rules with glob trigger conditions and engineering standards |
-| **GitHub Copilot** | `.github/copilot-instructions.md`<br>`.github/prompts/` | Global repo instructions and 17 reusable `.prompt.md` slash templates |
-| **Roo Code / Cline** | `.roomodes`<br>`.clinerules` | 10 multi-agent JSON personas (`software-engineer`, `code-reviewer`, `devops-engineer`, `research`, etc.) and rules |
-| **Windsurf** | `.windsurfrules` | Cascade rules for surgical modifications and session continuity |
-| **Antigravity / Gemini CLI** | `.agents/skills/`<br>`.agents/agents/` | Native 17-skill progressive disclosure and 10 specialized subagents |
-
----
-
-## 🚀 Quick Start & Installation
-
-### ❓ How Installation Works (Do I copy the repository files?)
-
-> [!IMPORTANT]
-> **Do NOT copy this entire repository into your project.**
-> `agent-toolkit` is designed to be cloned **once** into a central location on your machine (e.g., `~/agent-toolkit` or `~/.agent-toolkit`).
->
-> You run `install.sh` from the toolkit pointing to your target project (`--target /path/to/my-project`), or run the script directly from inside your project. The installer then generates or symlinks *only* the specific configuration folders and agent skills needed by your chosen AI assistant(s) into your project.
-
-```
-┌──────────────────────────────────────────────┐
-│  Central Toolkit (~/agent-toolkit)           │
-│  ├── install.sh                              │
-│  ├── skills/                                 │
-│  ├── agents/                                 │
-│  └── scripts/                                │
-└──────────────────────┬───────────────────────┘
-                       │
-  ./install.sh --target /path/to/my-project --tool all
-                       │
-                       ▼
-┌──────────────────────────────────────────────┐
-│  Target Project (/path/to/my-project)        │
-│  ├── .agents/skills/    (Antigravity/Gemini) │
-│  ├── .claude/commands/  (Claude Code)        │
-│  ├── .cursor/rules/     (Cursor MDC)         │
-│  ├── .github/prompts/   (Copilot)            │
-│  ├── .roomodes          (Roo / Cline)        │
-│  ├── .windsurfrules     (Windsurf)           │
-│  └── SESSION_LOG.md     (Session Ledger)     │
-└──────────────────────────────────────────────┘
-```
-
----
-
-### 📦 Installation Modes: Symlink vs. Copy
-
-`install.sh` supports two distribution modes via `--mode <symlink|copy>`:
-
-| Mode | Flag | How It Works | Best For |
-| :--- | :--- | :--- | :--- |
-| **Symlink** *(Default)* | `--mode symlink` | Creates symbolic links from your project back to your central `agent-toolkit` directory. | **Solo / Local Dev**: When you run `git pull` in `agent-toolkit`, all your projects immediately get the latest skills and agents without re-installing. |
-| **Copy / Standalone** | `--mode copy` | Copies the physical files and scripts directly into your target project directory. | **Team Repos & CI/CD**: The target repository is 100% self-contained. Teammates and CI runners do not need `agent-toolkit` cloned on their machines. |
-
----
-
-### 🛠️ Step-by-Step Installation Guide
-
-#### Step 1: Install `agent-toolkit` & Enable Global CLI
-
-Choose either direct web installation (fastest) or clone locally:
-
-##### Option A: Direct Web Install (Recommended — 1 Command)
-Install `agent-toolkit` and configure the global `atk` CLI launcher directly from the web without cloning manually:
+Install `agent-toolkit` globally and configure the unified `atk` CLI:
 
 **macOS / Linux (Bash / Zsh):**
 ```bash
 curl -fsSL https://raw.githubusercontent.com/raddadengineer/agent-toolkit/main/install.sh | bash
-```
-
-*Or install directly into a specific project from the web:*
-```bash
-curl -fsSL https://raw.githubusercontent.com/raddadengineer/agent-toolkit/main/install.sh | bash -s -- --target /path/to/my-project --tool all
 ```
 
 **Windows / Cross-Platform (PowerShell):**
@@ -500,228 +20,153 @@ curl -fsSL https://raw.githubusercontent.com/raddadengineer/agent-toolkit/main/i
 irm https://raw.githubusercontent.com/raddadengineer/agent-toolkit/main/install.ps1 | iex
 ```
 
-*Or install directly into a specific project from PowerShell:*
-```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/raddadengineer/agent-toolkit/main/install.ps1))) -Target "C:\path\to\my-project" -Tool all
-```
-
-##### Option B: Clone & Install Locally
-Alternatively, clone this repository once to a central folder on your machine:
-```bash
-git clone https://github.com/raddadengineer/agent-toolkit.git ~/agent-toolkit
-cd ~/agent-toolkit
-
-# For Bash / Zsh users (symlinks into ~/.local/bin and configures shell):
-./install.sh --global
-
-# For PowerShell users (cross-platform pwsh or Windows PowerShell):
-.\install.ps1 -Global
-```
-
-#### Step 2: Install into Your Target Project
-
-You can run the installer using any of the following approaches:
-
-**Approach A: Using the Global `atk` CLI (Fastest):**
+**Configure Any Project in 5 Seconds:**
 ```bash
 cd ~/my-project
-
-# Configure all AI tools at once (symlinks for local dev):
-atk install
-
-# Or copy physical files for a self-contained team repository:
-atk install --mode copy
+atk install          # Symlinks configs for all AI tools into your project
+atk start            # Prime session: branch check, context sync & memory recall
 ```
 
-**Approach B: From the `agent-toolkit` directory (Specifying `--target`):**
-```bash
-cd ~/agent-toolkit
+> 📖 *For complete setup options, manual cloning, and team copy modes, see the [Installation & Setup Guide](docs/installation.md).*
 
-# Configure all AI tools at once with symlinks:
-./install.sh --target /path/to/my-project --tool all
+---
 
-# Or copy physical files:
-./install.sh --target /path/to/my-project --tool all --mode copy
+## 📚 Documentation & Deep Guides
+
+| Guide | Description |
+| :--- | :--- |
+| **[🧰 Detailed Component Reference](docs/components.md)** | Deep dive into all 17 skills, 10 subagents, lifecycle hooks, and MCP servers. |
+| **[⚡ CLI Commands & Terminal Recipes](docs/cli.md)** | Standalone terminal recipes for `atk`, token compression, memory, PR auditing, and debugging. |
+| **[🛠️ Installation & Setup Guide](docs/installation.md)** | Assistant-specific recipes, symlink vs copy modes, global PATH configuration, and multi-project updating. |
+
+---
+
+## 🔄 The End-to-End Daily Workflow Loop
+
 ```
-
-**Approach C: From inside your target project directory:**
-```bash
-cd ~/my-project
-
-# Run the installer directly pointing to your central toolkit location:
-~/agent-toolkit/install.sh --tool all
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 1. SESSION KICKOFF                                                          │
+│    atk start (or /session-starter)                                          │
+│    • Ingests previous handover from SESSION_LOG.md                          │
+│    • Verifies git branch health and working tree state                      │
+│    • Validates context file sync (AGENTS.md, CLAUDE.md, GEMINI.md)          │
+│    • Recalls active project patterns and anti-patterns                      │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │
+┌──────────────────────────────────────▼──────────────────────────────────────┐
+│ 2. CONTEXT OPTIMIZATION (85–95% Token Savings)                              │
+│    atk profile / atk pack (or /compress-context)                            │
+│    • Profiles token consumption across directories                          │
+│    • Extracts lightweight AST interface skeletons                           │
+│    • Prevents context rot and stays within LLM attention limits             │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │
+┌──────────────────────────────────────▼──────────────────────────────────────┐
+│ 3. SURGICAL CODING, TESTING & ADVERSARIAL REVIEW                            │
+│    • Software Engineer orchestrates surgical modifications                  │
+│    • Test Engineer scaffolds deterministic Red-Green test proofs            │
+│    • Code Reviewer audits diff for error swallowing, concurrency & security │
+│    • Memory Manager recalls established rules (atk memory recall)           │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │
+┌──────────────────────────────────────▼──────────────────────────────────────┐
+│ 4. PRE-FLIGHT PR AUDIT & DISCIPLINED CLOSURE                                │
+│    atk pr / atk close (or /session-closer)                                  │
+│    • Audits diff for debug logs and leaked credentials                      │
+│    • Enforces Zero False Verification (test exit code 0)                    │
+│    • Prepends structured handover log to SESSION_LOG.md                     │
+│    • Out-of-band Dreamer distills session learnings into memory store       │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-### 🎯 Assistant-Specific Installation Recipes
+## 🧭 Skills & Subagents Directory
 
-If you only use a specific AI assistant, you can install just its configuration:
+All skills are delivered via **progressive disclosure** (`.agents/skills/`), and specialized subagents operate in isolated contexts (`.agents/agents/`):
 
-```bash
-# 1. Claude Code (.claude/commands/, CLAUDE.md):
-./install.sh --target /path/to/my-project --tool claude
-# (or 'atk install --tool claude' from inside your project)
+### 🎯 Progressive Disclosure Skills (17 Skills)
 
-# 2. Cursor (.cursor/rules/*.mdc, .cursorrules):
-./install.sh --target /path/to/my-project --tool cursor
-# (or 'atk install --tool cursor' from inside your project)
+| Skill | Primary Focus | CLI Shortcut | Reference |
+| :--- | :--- | :--- | :--- |
+| **[`session-starter`](skills/session-starter/SKILL.md)** | Session kickoff, handover ingestion & memory priming | `atk start` | [Docs](docs/components.md#2-session-starter-skill) |
+| **[`session-closer`](skills/session-closer/SKILL.md)** | Handover ledger logging, context sync & verification | `atk close` | [Docs](docs/components.md#3-session-closer-skill) |
+| **[`context-optimizer`](skills/context-optimizer/SKILL.md)** | Token heatmap profiling & AST interface skeletonizing | `atk profile` / `atk pack` | [Docs](docs/components.md#1-context-optimizer-skill) |
+| **[`memory-manager`](skills/memory-manager/SKILL.md)** | Persistent scoped developer memory & SHA-256 recall | `atk memory` | [Docs](docs/components.md#15-memory-manager-skill) |
+| **[`dreamer`](skills/dreamer/SKILL.md)** | Out-of-band offline transcript analysis & distillation | `atk dream` | [Docs](docs/components.md#16-dreamer-skill) |
+| **[`pr-prep`](skills/pr-prep/SKILL.md)** | Pre-flight secret/log sanitization & PR descriptions | `atk pr` | [Docs](docs/components.md#4-pr-prep-skill) |
+| **[`code-reviewer`](skills/code-reviewer/SKILL.md)** | 5-dimension adversarial code audit & verdicts | `atk review` | [Docs](docs/components.md#5-code-reviewer-skill) |
+| **[`test-engineer`](skills/test-engineer/SKILL.md)** | Deterministic test scaffolding & boundary matrices | `atk test-gen` | [Docs](docs/components.md#6-test-engineer-skill) |
+| **[`system-architect`](skills/system-architect/SKILL.md)** | Architecture Decision Records (ADRs) & boundaries | `atk adr` | [Docs](docs/components.md#7-system-architect-skill) |
+| **[`debugger`](skills/debugger/SKILL.md)** | Stack trace deobfuscation, repro.sh & git bisect | `atk debug` | [Docs](docs/components.md#8-debugger-skill) |
+| **[`security-auditor`](skills/security-auditor/SKILL.md)** | SAST vulnerability scanning & secret leak detection | `atk audit` | [Docs](docs/components.md#9-security-auditor-skill) |
+| **[`database-engineer`](skills/database-engineer/SKILL.md)** | Reversible migrations & table lock contention checks | `atk db` | [Docs](docs/components.md#10-database-engineer-skill) |
+| **[`container-engineer`](skills/container-engineer/SKILL.md)** | Hardened multi-stage Dockerfiles & caching linters | `atk docker` | [Docs](docs/components.md#11-container-engineer-skill) |
+| **[`ci-workflow`](skills/ci-workflow/SKILL.md)** | GitHub Actions pipeline synthesis & action unpinning | `atk ci` | [Docs](docs/components.md#12-ci-workflow-skill) |
+| **[`dependency-auditor`](skills/dependency-auditor/SKILL.md)** | Multi-ecosystem wildcard & deprecation auditing | `atk dep` | [Docs](docs/components.md#13-dependency-auditor-skill) |
+| **[`release-manager`](skills/release-manager/SKILL.md)** | SemVer bump calculation & Conventional Commits changelogs | `atk release` | [Docs](docs/components.md#14-release-manager-skill) |
+| **[`doc-sync`](skills/doc-sync/SKILL.md)** | Documentation, schema parity & broken link sentinel | `atk drift` | [Docs](docs/components.md#17-doc-sync-skill) |
 
-# 3. GitHub Copilot (.github/copilot-instructions.md, .github/prompts/):
-./install.sh --target /path/to/my-project --tool copilot
+### 🤖 Specialized Subagents (10 Subagents)
 
-# 4. Roo Code / Cline (.roomodes, .clinerules):
-./install.sh --target /path/to/my-project --tool roo
-
-# 5. Windsurf (.windsurfrules):
-./install.sh --target /path/to/my-project --tool windsurf
-
-# 6. Google Antigravity & Gemini CLI (.agents/, AGENTS.md, GEMINI.md):
-./install.sh --target /path/to/my-project --tool antigravity
-# (or ./install.sh --target /path/to/my-project --all)
-
-# 7. Web Installation, Global CLI & Repo Update Utilities:
-./install.sh --web          # Install or refresh central toolkit directly from web repository
-./install.sh --global       # Symlink 'atk' into ~/.local/bin and configure shell profiles
-./install.sh --powershell   # Explicitly configure PowerShell profile with 'atk' function
-./install.sh --update       # Pull latest toolkit updates from origin main
-
-# PowerShell equivalents:
-.\install.ps1 -Web          # Install or refresh central toolkit directly from web repository
-.\install.ps1 -Global       # Install global 'atk' launcher & configure PowerShell profile
-.\install.ps1 -Update       # Pull latest updates and refresh configurations
-```
-
-To inspect all available skills, subagents, and supported assistants:
-```bash
-./install.sh --list         # Or '.\install.ps1 -List' in PowerShell
-```
+| Subagent | Persona & Focus | Reference |
+| :--- | :--- | :--- |
+| **`software_engineer`** | Tech Lead orchestrator, surgical changes, peer-review gating, Zero False Verification. | [Docs](docs/components.md#-specialized-subagents) |
+| **`code_reviewer`** | Read-only adversarial diff auditor (security, concurrency, error swallowing, churn). | [Docs](docs/components.md#-specialized-subagents) |
+| **`test_engineer`** | Test automation specialist, deterministic fixtures, mocks, and Red-Green proof. | [Docs](docs/components.md#-specialized-subagents) |
+| **`system_architect`** | Interface contract design, modular boundary enforcement, and ADR synthesis. | [Docs](docs/components.md#-specialized-subagents) |
+| **`context_optimizer`** | Token consumption profiling, AST skeleton generation, and hybrid packing. | [Docs](docs/components.md#-specialized-subagents) |
+| **`debugger`** | Root-cause analyzer, minimal reproduction scripts (`repro.sh`), automated git bisect. | [Docs](docs/components.md#-specialized-subagents) |
+| **`security_auditor`** | Application security scanner, injection checks, and credential leak inspection. | [Docs](docs/components.md#-specialized-subagents) |
+| **`database_engineer`** | Zero-downtime DDL, lock contention validation, and migration reversibility. | [Docs](docs/components.md#-specialized-subagents) |
+| **`devops_engineer`** | Hardened Dockerfiles, GitHub Actions synthesis, and SemVer release management. | [Docs](docs/components.md#-specialized-subagents) |
+| **`research`** | Isolated documentation reading, RFC exploration, and version-pinned snippet distillation. | [Docs](docs/components.md#-specialized-subagents) |
 
 ---
 
-### ⚡ Global Terminal CLI: `atk`
+## 🌐 Multi-Tool AI Ecosystem Support
 
-`agent-toolkit` includes unified global CLI launchers (`bin/atk` for Bash/Zsh, `bin/atk.ps1` for PowerShell) that make all skills, auditors, and installers accessible from **any** directory in your terminal without typing repository paths.
+`agent-toolkit` compiles your skills, instructions, and rules into the native configuration format of every leading AI coding assistant:
 
-#### 1. Enable Global Access (One-time setup):
+| Tool | Export Path | Native Integration |
+| :--- | :--- | :--- |
+| **Claude Code** | `.claude/commands/`<br>`CLAUDE.md` | 17 interactive slash commands (`/session-starter`, `/code-review`, `/memory-manager`, `/dreamer`, etc.) |
+| **Cursor** | `.cursor/rules/*.mdc`<br>`.cursorrules` | 16 Cursor 2.0 MDC rules with glob trigger conditions and engineering standards |
+| **GitHub Copilot** | `.github/copilot-instructions.md`<br>`.github/prompts/` | Global repo instructions and 17 reusable `.prompt.md` slash templates |
+| **Roo Code / Cline** | `.roomodes`<br>`.clinerules` | 10 multi-agent JSON personas (`software-engineer`, `code-reviewer`, `devops-engineer`, `research`, etc.) |
+| **Windsurf** | `.windsurfrules` | Cascade rules for surgical modifications and session continuity |
+| **Antigravity / Gemini CLI** | `.agents/skills/`<br>`.agents/agents/` | Native 17-skill progressive disclosure and 10 specialized subagents |
 
-**Bash / Zsh:**
-```bash
-cd ~/agent-toolkit
-./bin/atk link
-# (or ./install.sh --global)
-```
-*(This symlinks `atk` and `agent-toolkit` directly into `~/.local/bin`, and updates PowerShell profile if PowerShell is present).*
-
-**PowerShell (Windows, macOS, Linux):**
-```powershell
-cd ~/agent-toolkit
-.\install.ps1 -Global
-# (or pwsh ./bin/atk.ps1 link)
-```
-*(This links `atk.ps1` into `~/.local/bin` and idempotently configures your `$PROFILE` with native `atk` and `agent-toolkit` functions).*
-
-#### 2. Run Commands in Any Project:
-```bash
-cd ~/my-project
-
-# Install all AI assistant configs into the current directory:
-atk install
-
-# Or install for a specific tool:
-atk install --tool cursor
-atk install --mode copy
-
-# Daily development workflow shortcuts:
-atk start        # Prime workspace and ingest recent handover notes
-atk profile      # Analyze token hotspots across files
-atk review       # Run adversarial code review on active diff (review_code.py)
-atk test-gen     # Scaffold deterministic unit tests & boundary matrix (scaffold_tests.py)
-atk adr list     # List recorded Architecture Decision Records (manage_adr.py)
-atk docker audit # Audit Dockerfile for security & layer-caching hazards (harden_docker.py)
-atk ci audit     # Audit CI workflows for unpinned actions & permissions (synthesize_ci.py)
-atk dep audit    # Audit dependencies for wildcards & deprecations (audit_deps.py)
-atk release bump # Calculate next SemVer bump from Conventional Commits (manage_release.py)
-atk audit        # Scan diff and codebase for security/credential leaks
-atk pr           # Audit diff and generate ready-to-copy PR description
-atk sync         # Synchronize AGENTS.md, CLAUDE.md, and GEMINI.md
-atk close        # Wrap up session and record in SESSION_LOG.md
-```
-
-> [!NOTE]
-> **AI Agent Compatibility**: Enabling `atk` does **not** alter how AI coding assistants work. Inside chat interfaces, agents in Antigravity, Claude Code, Cursor, Copilot, and Roo continue discovering skills, rules, and subagents natively. In addition, agents can now run `atk` directly when executing bash commands without searching for script paths.
+> 📖 *For assistant-specific recipes and setup commands, see the [Installation Guide](docs/installation.md#assistant-specific-recipes).*
 
 ---
 
-### 🏁 Step 3: Initialize Session Ledger & Context Baseline
+## 📂 Repository Structure
 
-After running `install.sh`, navigate to your target project and initialize your `SESSION_LOG.md` and baseline context files:
-
-```bash
-cd ~/my-project
-
-# Initializes SESSION_LOG.md and synchronizes AGENTS.md, CLAUDE.md, and GEMINI.md:
-python3 .agents/skills/session-closer/scripts/sync_context.py --init
 ```
-
-> [!TIP]
-> If your project already has an `AGENTS.md` or `CLAUDE.md`, `sync_context.py --init` preserves your existing guidelines and synchronizes them across all context files via SHA-256 validation.
-
----
-
-### 🔄 Updating `agent-toolkit` Across Projects
-
-You can update `agent-toolkit` at any time:
-
-#### Option 1: Using the Global CLI (Fastest):
-```bash
-# Refresh current project:
-atk update
-
-# Or refresh ALL registered project installations across your system at once:
-atk update --all
-
-# Inspect all registered project installations:
-atk installs
+agent-toolkit/
+├── bin/
+│   ├── atk                            # Unified global CLI launcher (Bash/Zsh)
+│   └── atk.ps1                        # Unified global CLI launcher (PowerShell)
+├── install.sh / install.ps1           # Multi-tool installers and symlink managers
+├── skills/                            # 17 progressive disclosure skills
+├── agents/                            # 10 specialized subagent configurations
+├── memory/                            # Persistent repository memory (patterns, rules, ADRs)
+├── docs/                              # Detailed component, CLI, and installation guides
+│   ├── components.md                  # Comprehensive reference for skills & subagents
+│   ├── cli.md                         # Standalone recipes & terminal commands
+│   └── installation.md                # Multi-tool installation & registry guide
+├── scripts/                           # Central CLI engines, adapters & sentinels
+├── hooks/                             # Antigravity PreToolUse and PostToolUse hooks
+├── mcp/                               # Native MCP suite: Playwright, GitHub, SQLite
+└── tests/                             # 126 deterministic unit tests (Zero False Verification)
 ```
-*(Every time you run `atk install` in a repository, it is automatically recorded in `~/.agent-toolkit/installs.json`. Running `atk update --all` pulls latest commits from `origin main` and automatically updates configurations across all registered projects in one shot).*
-
-#### Option 2: Using the Installer Script:
-```bash
-cd ~/agent-toolkit
-./install.sh --update
-```
-
-#### Manual Update by Mode:
-- **If you installed with `--mode symlink` (default):**
-  Pull the latest changes in your central `agent-toolkit` repository:
-  ```bash
-  cd ~/agent-toolkit
-  git pull origin main
-  ```
-  All linked projects immediately inherit updated skills, subagents, and hooks without needing re-installation.
-
-- **If you installed with `--mode copy`:**
-  Pull updates in the central toolkit, then re-run the installer targeting your project:
-  ```bash
-  cd ~/agent-toolkit
-  git pull origin main
-  ./install.sh --target /path/to/my-project --tool all --mode copy
-  ```
-
----
-
-### 👥 Team Repositories & Git Hygiene
-
-When sharing a project repository with a team:
-- **Using `--mode copy` (Team Setup)**: Commit the generated `.agents/`, `.cursor/`, `.claude/`, `.github/`, and `SESSION_LOG.md` files to version control so all team members and AI assistants share identical standards.
-- **Using `--mode symlink` (Personal Local Setup)**: If teammates do not use `agent-toolkit`, you can add `.agents/`, `.claude/`, and `.roomodes` to your repository's `.gitignore` or global `~/.gitignore_global`.
 
 ---
 
 ## 🧪 Running Tests
 
-Verify the entire toolkit's synchronizers, auditors, adapters, and logging engines:
+Verify the entire toolkit's synchronizers, auditors, adapters, and memory engines:
 ```bash
 python3 -m unittest discover -s tests
 ```
@@ -729,4 +174,4 @@ python3 -m unittest discover -s tests
 ---
 
 ## 📄 License
-MIT License. Free to use across personal and professional projects.
+MIT License. Free to use across personal and commercial projects.
