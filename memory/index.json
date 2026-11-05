@@ -1,0 +1,76 @@
+{
+  "entries": {
+    "anti-patterns/avoid-unpinned-wildcard-dependencies.md": {
+      "access_count": 0,
+      "category": "anti-patterns",
+      "checksum": "9b1a07226c0eafe46551ad56e38ff1f50e3b15680fad815ba754b71ec9499013",
+      "created_at": "2026-11-05T02:09:10.612060+00:00",
+      "id": "avoid-unpinned-wildcard-dependencies",
+      "last_accessed": "2026-11-05T02:09:10.612060+00:00",
+      "path": "anti-patterns/avoid-unpinned-wildcard-dependencies.md",
+      "scope": "project",
+      "tags": [
+        "build",
+        "dependencies",
+        "security"
+      ],
+      "title": "Avoid Unpinned Wildcard Dependencies",
+      "updated_at": "2026-11-05T02:09:10.612060+00:00"
+    },
+    "decisions/adopt-scoped-memory-store-and-dreaming-architecture.md": {
+      "access_count": 0,
+      "category": "decisions",
+      "checksum": "3d5084f2e89f8424d81fb70261527c0d303e0ed9802d021c9de90dc709f57aaa",
+      "created_at": "2026-11-05T02:09:13.975751+00:00",
+      "id": "adopt-scoped-memory-store-and-dreaming-architecture",
+      "last_accessed": "2026-11-05T02:09:13.975751+00:00",
+      "path": "decisions/adopt-scoped-memory-store-and-dreaming-architecture.md",
+      "scope": "project",
+      "tags": [
+        "anthropic",
+        "architecture",
+        "dreaming",
+        "memory"
+      ],
+      "title": "Adopt Scoped Memory Store and Dreaming Architecture",
+      "updated_at": "2026-11-05T02:09:13.975751+00:00"
+    },
+    "patterns/ast-doc-drift-parity-sentinel-verification.md": {
+      "access_count": 0,
+      "category": "patterns",
+      "checksum": "eaddfa32f6c6e4f2ddc17a5bee920491feb9dc5645501d17abc648db2f5e4a67",
+      "created_at": "2026-11-05T02:09:07.040949+00:00",
+      "id": "ast-doc-drift-parity-sentinel-verification",
+      "last_accessed": "2026-11-05T02:09:07.040949+00:00",
+      "path": "patterns/ast-doc-drift-parity-sentinel-verification.md",
+      "scope": "project",
+      "tags": [
+        "ast",
+        "docs",
+        "sentinel",
+        "verification"
+      ],
+      "title": "AST Doc Drift & Parity Sentinel Verification",
+      "updated_at": "2026-11-05T02:09:07.040949+00:00"
+    },
+    "rules/zero-false-verification-mandate.md": {
+      "access_count": 1,
+      "category": "rules",
+      "checksum": "f05cfd1a2f90edffb06e2d97641bfa384966c4c46347b24e38694410c01ef0ab",
+      "created_at": "2026-11-05T02:09:03.643011+00:00",
+      "id": "zero-false-verification-mandate",
+      "last_accessed": "2026-11-05T02:11:45.645031+00:00",
+      "path": "rules/zero-false-verification-mandate.md",
+      "scope": "project",
+      "tags": [
+        "mandate",
+        "testing",
+        "verification"
+      ],
+      "title": "Zero False Verification Mandate",
+      "updated_at": "2026-11-05T02:09:03.643011+00:00"
+    }
+  },
+  "updated_at": "2026-11-05T02:11:45.645164+00:00",
+  "version": "1.0"
+}

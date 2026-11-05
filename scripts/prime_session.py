@@ -193,11 +193,42 @@ def get_git_state(repo_root: Path) -> Dict[str, Any]:
     }
 
 
+def get_memory_brief(repo_root: Path) -> Dict[str, Any]:
+    """Inspects local repository and global agent memory stores."""
+    mem_index_file = repo_root / "memory" / "index.json"
+    if not mem_index_file.exists():
+        return {"exists": False, "total": 0, "categories": {}, "top_items": []}
+
+    try:
+        data = json.loads(mem_index_file.read_text(encoding="utf-8"))
+        entries = data.get("entries", {})
+        categories: Dict[str, int] = {}
+        items = []
+        for rel_path, entry in entries.items():
+            cat = entry.get("category", "other")
+            categories[cat] = categories.get(cat, 0) + 1
+            items.append({
+                "title": entry.get("title", ""),
+                "category": cat,
+                "scope": entry.get("scope", "project"),
+                "path": rel_path,
+            })
+        return {
+            "exists": True,
+            "total": len(entries),
+            "categories": categories,
+            "top_items": items[:5],
+        }
+    except Exception:
+        return {"exists": False, "total": 0, "categories": {}, "top_items": []}
+
+
 def gather_session_brief(repo_root: Path) -> Dict[str, Any]:
     """Gathers complete orientation info for the session."""
     git_state = get_git_state(repo_root)
     context_sync = check_context_sync(repo_root)
     last_session = parse_last_session(repo_root / "SESSION_LOG.md")
+    memory_brief = get_memory_brief(repo_root)
 
     return {
         "repo_root": str(repo_root),
@@ -205,6 +236,7 @@ def gather_session_brief(repo_root: Path) -> Dict[str, Any]:
         "git": git_state,
         "context_sync": context_sync,
         "last_session": last_session,
+        "memory": memory_brief,
     }
 
 
@@ -261,6 +293,17 @@ def format_markdown_brief(brief: Dict[str, Any]) -> str:
             lines.append("- **Next Steps**: (None recorded in previous session)")
     else:
         lines.append("- *No prior session log found in `SESSION_LOG.md`.*")
+
+    # 4. Memory Store Brief
+    mem = brief.get("memory")
+    if mem and mem.get("exists") and mem.get("total", 0) > 0:
+        lines.append("\n## 🧠 Persistent Agent Memory")
+        cats_str = ", ".join(f"{count} {cat}" for cat, count in mem.get("categories", {}).items())
+        lines.append(f"- **Stored Knowledge**: {mem['total']} entries ({cats_str})")
+        if mem.get("top_items"):
+            lines.append("- **Active Patterns & Gotchas**:")
+            for item in mem["top_items"]:
+                lines.append(f"  • [{item['category']}] {item['title']} (`{item['path']}`)")
 
     lines.append("\n---")
     lines.append("🎯 **Ready to proceed**: Align on the immediate goal and execute.")

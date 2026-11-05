@@ -237,6 +237,24 @@ Execute the Universal Release Manager procedure:
 1. Run `python3 scripts/manage_release.py --bump` to calculate the next Semantic Version from git commit history.
 2. Run `python3 scripts/manage_release.py --changelog` or `--notes` to update `CHANGELOG.md` and draft GitHub release notes.
 """,
+            "memory-manager.md": """---
+description: Manage and recall scoped developer memories, patterns, and anti-patterns
+---
+
+Execute the Universal Memory Manager procedure:
+1. Before architectural changes or tricky debugging, recall established rules and gotchas: `python3 scripts/manage_memory.py recall "<topic>"`.
+2. Record proven patterns and discovered anti-patterns: `python3 scripts/manage_memory.py record --category patterns --title "<title>" --content "<content>"`.
+3. Audit memory integrity and clean checksums: `python3 scripts/manage_memory.py audit`.
+""",
+            "dreamer.md": """---
+description: Run out-of-band offline memory consolidation across session logs and transcripts
+---
+
+Execute the Universal Dreamer procedure:
+1. Synthesize recent session logs and transcripts: `python3 scripts/dream_consolidator.py --analyze`.
+2. Interactively review or auto-promote candidate patterns and anti-patterns: `python3 scripts/dream_consolidator.py --review` (or `--auto-promote`).
+3. Export consolidation proposal: `python3 scripts/dream_consolidator.py --output MEMORY_PROPOSAL.md`.
+""",
         }
 
         for filename, content in commands.items():
@@ -441,6 +459,30 @@ alwaysApply: false
 - Derive version bumps (`major`, `minor`, `patch`) deterministically from Conventional Commits (`feat`, `fix`, `perf`, `BREAKING CHANGE`).
 - Keep `CHANGELOG.md` structured under Keep a Changelog sections (`Added`, `Fixed`, `Changed`, `Breaking Changes`).
 """,
+            "memory-manager.mdc": """---
+description: Scoped Persistent Developer Memory & Anti-Pattern Standards
+globs: *
+alwaysApply: false
+---
+
+# Scoped Memory Management Standards
+
+- Check repository memory (`memory/`) before major changes to recall known architecture decisions and pitfalls.
+- Record proven solution patterns and tricky gotchas using `python3 scripts/manage_memory.py record`.
+- Maintain content-addressed SHA-256 integrity and audit memory decay using `python3 scripts/manage_memory.py audit`.
+""",
+            "dreamer.mdc": """---
+description: Autonomous Out-of-Band Memory Consolidation & Dreaming Standards
+globs: *
+alwaysApply: false
+---
+
+# Dreamer Consolidation Standards
+
+- Run memory consolidation out-of-band at session conclusion or idle time to prevent context distraction during active coding.
+- Ingest `SESSION_LOG.md` and conversation transcripts to extract recurring failure modes and winning patterns.
+- Require explicit developer review before promoting candidate memories into permanent repo memory.
+""",
         }
 
         for filename, content in rules.items():
@@ -585,6 +627,20 @@ description: Calculate SemVer version bumps and generate Conventional Commits ch
 ---
 
 Analyze git commit history since the latest tag to determine the next Semantic Version bump and compile structured CHANGELOG.md release notes.
+""",
+            "memory-manager.prompt.md": """---
+name: memory-manager
+description: Recall, record, and inspect persistent scoped developer memories
+---
+
+Search indexed repository memory for past solutions, architecture decisions, and anti-patterns, or record newly solved challenges into persistent storage.
+""",
+            "dreamer.prompt.md": """---
+name: dreamer
+description: Run out-of-band offline memory consolidation and pattern distillation
+---
+
+Analyze session ledgers and execution transcripts to extract winning solution patterns, recurring error traps, and draft memory update proposals.
 """,
         }
 

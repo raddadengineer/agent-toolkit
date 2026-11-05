@@ -24,7 +24,10 @@ Welcome to `agent-toolkit`, a centralized library of reusable skills, specialize
   - `ci-workflow/`: Pipeline synthesizer (GitHub Actions) and workflow security auditor.
   - `dependency-auditor/`: Multi-ecosystem manifest auditor for wildcards and deprecations.
   - `release-manager/`: Semantic versioning calculator and Conventional Commits changelog generator.
+  - `memory-manager/`: Scoped persistent developer memory, pattern/anti-pattern store, and SHA-256 integrity auditor.
+  - `dreamer/`: Out-of-band offline memory consolidation and pattern distillation loop.
   - `doc-sync/`: Filesystem vs documentation drift and broken link sentinel.
+- `memory/`: Structured persistent repository memory store (`patterns/`, `anti-patterns/`, `rules/`, `decisions/`, `index.json`).
 - `agents/`: Specialized subagent system prompts, persona configurations, and capability definitions.
 - `scripts/`: Multi-tool configuration compilers (`export_adapters.py`), context compressors, hooks, and validators.
 - `hooks/`: PreToolUse and PostToolUse lifecycle hook definitions (`hooks.json`).

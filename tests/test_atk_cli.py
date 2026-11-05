@@ -101,6 +101,16 @@ class TestAtkCli(unittest.TestCase):
         self.assertEqual(result.returncode, 0)
         self.assertIn("Manage agent-toolkit project installation registry", result.stdout)
 
+    def test_atk_memory_command(self):
+        result = subprocess.run([str(ATK_BIN), "memory", "--help"], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("Solo Developer Scoped Memory Manager", result.stdout)
+
+    def test_atk_dream_command(self):
+        result = subprocess.run([str(ATK_BIN), "dream", "--help"], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("Solo Developer Out-of-Band Memory Consolidator", result.stdout)
+
     def test_atk_update_all_flow(self):
         custom_reg = self.target / "custom_installs.json"
         env = dict(os.environ, AGENT_TOOLKIT_REGISTRY=str(custom_reg))

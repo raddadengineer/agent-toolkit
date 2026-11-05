@@ -77,10 +77,24 @@ agent-toolkit/
 │   │   ├── SKILL.md                   # Semantic Versioning & changelog workflow
 │   │   └── scripts/
 │   │       └── manage_release.py      # SemVer bump calculator & changelog generator
+│   ├── memory-manager/                # Scoped persistent developer memory & recall skill
+│   │   ├── SKILL.md                   # Memory storage, querying & SHA-256 integrity
+│   │   └── scripts/
+│   │       └── manage_memory.py       # Scoped memory engine & index manager
+│   ├── dreamer/                       # Out-of-band offline memory consolidation skill
+│   │   ├── SKILL.md                   # Autonomous transcript analysis & dreaming loop
+│   │   └── scripts/
+│   │       └── dream_consolidator.py  # Offline pattern extractor & proposal generator
 │   └── doc-sync/                      # Documentation & schema drift sentinel skill
 │       ├── SKILL.md                   # Drift detection & link verification workflow
 │       └── scripts/
 │           └── check_doc_drift.py     # Filesystem vs README drift sentinel
+├── memory/                            # Structured persistent repository memory
+│   ├── index.json                     # Fast keyword & tag index with SHA-256 hashes
+│   ├── patterns/                      # Proven solution workflows that succeeded
+│   ├── anti-patterns/                 # Known gotchas, bugs, and traps to avoid
+│   ├── rules/                         # Operational mandates and quality constraints
+│   └── decisions/                     # Architecture Decision Records and notes
 ├── scripts/
 │   ├── compress_context.py            # Universal token optimizer & context packer
 │   ├── export_adapters.py             # Multi-tool AI assistant configuration compiler
@@ -370,17 +384,29 @@ Semantic versioning and Conventional Commits changelog manager (`manage_release.
 - **SemVer Calculation**: Analyzes commit history since the last tag and recommends major, minor, or patch version bumps.
 - **Changelog & Notes**: Automatically compiles `CHANGELOG.md` sections and drafts GitHub Release notes.
 
-### 18. 📚 `research` (Subagent)
+### 18. 🧠 `memory-manager` (Skill)
+Scoped developer memory store and recall engine (`manage_memory.py` / `atk memory`):
+- **Structured Categories**: Organizes institutional knowledge into `patterns/`, `anti-patterns/`, `rules/`, and `decisions/`.
+- **Indexed Search & Integrity**: Sub-millisecond keyword, tag, and content recall with SHA-256 integrity audits.
+- **Multi-Tool Persistence**: Accessible across Claude Code, Cursor, Antigravity, Gemini CLI, and Windsurf without context rot.
+
+### 19. 🌙 `dreamer` (Skill)
+Anthropic-style out-of-band offline memory consolidation skill (`dream_consolidator.py` / `atk dream`):
+- **Autonomous Transcript Digestion**: Parses session logs (`SESSION_LOG.md`) and conversation execution transcripts offline without distracting from active coding.
+- **Pattern & Trap Extraction**: Detects recurring error loops, failing tests that were resolved, and winning solution sequences.
+- **Human-in-the-Loop Gate**: Produces structured memory proposals with supporting rationale for one-click approval or auto-promotion.
+
+### 20. 📚 `research` (Subagent)
 Technical research and documentation sandbox subagent:
 - **Context Isolation**: Offloads heavy API documentation, RFC reading, and web searches so raw HTML/Markdown dumps do not pollute the primary coding context.
 - **Version-Pinned Distillation**: Inspects local package manifests first and returns concise signatures, minimal working snippets, and primary citations.
 
-### 19. 🪝 Lifecycle Hooks & Auto-Formatters (`hooks.json`)
+### 21. 🪝 Lifecycle Hooks & Auto-Formatters (`hooks.json`)
 Native Antigravity lifecycle hooks:
 - **`PreToolUse` Safety Guard**: Inspects shell commands before execution and blocks destructive actions (`rm -rf /`, force pushes to `main`, disk overwrites).
 - **`PostToolUse` Auto-Formatter**: Runs language formatters (`ruff`, `prettier`, `swiftformat`, `gofmt`) automatically on modified files.
 
-### 20. 🔌 Native MCP Suite (`mcp_config.json`)
+### 22. 🔌 Native MCP Suite (`mcp_config.json`)
 Pre-packaged Model Context Protocol servers:
 - **Playwright**: Headless browser automation, visual inspection, and live DOM testing.
 - **GitHub**: Remote CI/CD log inspection (`gh run view`), issue lookup, and PR review triage.
@@ -394,12 +420,12 @@ Pre-packaged Model Context Protocol servers:
 
 | Tool | Export Path | Native Integration |
 | :--- | :--- | :--- |
-| **Claude Code** | `.claude/commands/`<br>`CLAUDE.md` | 15 interactive slash commands (`/session-starter`, `/code-review`, `/container-engineer`, `/ci-workflow`, `/release-manager`, etc.) |
-| **Cursor** | `.cursor/rules/*.mdc`<br>`.cursorrules` | 14 Cursor 2.0 MDC rules with glob trigger conditions and engineering standards |
-| **GitHub Copilot** | `.github/copilot-instructions.md`<br>`.github/prompts/` | Global repo instructions and 15 reusable `.prompt.md` slash templates |
+| **Claude Code** | `.claude/commands/`<br>`CLAUDE.md` | 17 interactive slash commands (`/session-starter`, `/code-review`, `/container-engineer`, `/ci-workflow`, `/release-manager`, `/memory-manager`, `/dreamer`, etc.) |
+| **Cursor** | `.cursor/rules/*.mdc`<br>`.cursorrules` | 16 Cursor 2.0 MDC rules with glob trigger conditions and engineering standards |
+| **GitHub Copilot** | `.github/copilot-instructions.md`<br>`.github/prompts/` | Global repo instructions and 17 reusable `.prompt.md` slash templates |
 | **Roo Code / Cline** | `.roomodes`<br>`.clinerules` | 10 multi-agent JSON personas (`software-engineer`, `code-reviewer`, `devops-engineer`, `research`, etc.) and rules |
 | **Windsurf** | `.windsurfrules` | Cascade rules for surgical modifications and session continuity |
-| **Antigravity / Gemini CLI** | `.agents/skills/`<br>`.agents/agents/` | Native 15-skill progressive disclosure and 10 specialized subagents |
+| **Antigravity / Gemini CLI** | `.agents/skills/`<br>`.agents/agents/` | Native 17-skill progressive disclosure and 10 specialized subagents |
 
 ---
 

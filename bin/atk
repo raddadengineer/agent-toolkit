@@ -32,6 +32,8 @@ Core Commands:
   sync [file]          Synchronize AGENTS.md, CLAUDE.md, and GEMINI.md
   check                Check SHA-256 sync status of context files
   status               Display status and checksums of tracked context files
+  memory [opts]        Manage scoped agent memories & recall (manage_memory.py)
+  dream [opts]         Run offline memory consolidation pass (dream_consolidator.py)
 
 Optimization, Quality & Architecture:
   profile [opts]       Profile repository token consumption across files
@@ -134,6 +136,14 @@ case "${COMMAND}" in
     status)
         shift
         python3 "${TOOLKIT_DIR}/skills/session-closer/scripts/sync_context.py" --status "$@"
+        ;;
+    memory|mem)
+        shift
+        python3 "${TOOLKIT_DIR}/skills/memory-manager/scripts/manage_memory.py" "$@"
+        ;;
+    dream|dreamer)
+        shift
+        python3 "${TOOLKIT_DIR}/skills/dreamer/scripts/dream_consolidator.py" "$@"
         ;;
     profile)
         shift

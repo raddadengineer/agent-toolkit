@@ -400,6 +400,11 @@ def main():
         default="SESSION_LOG.md",
         help="Name of session log file (default: SESSION_LOG.md)",
     )
+    parser.add_argument(
+        "--dream",
+        action="store_true",
+        help="Trigger dream consolidation pass to extract patterns after logging session",
+    )
 
     args = parser.parse_args()
 
@@ -425,6 +430,17 @@ def main():
             next_steps=next_steps,
             log_filename=args.log_file,
         )
+        if args.dream:
+            print("\n🌙 Running offline memory consolidation (dreamer)...")
+            try:
+                try:
+                    from scripts.dream_consolidator import dream_session_learnings, format_proposal_markdown
+                except ImportError:
+                    from dream_consolidator import dream_session_learnings, format_proposal_markdown
+                result = dream_session_learnings(repo_root)
+                print(format_proposal_markdown(result))
+            except Exception as e:
+                print(f"⚠️ Dreamer execution skipped: {e}")
         sys.exit(0)
 
     if args.sync is not None:
