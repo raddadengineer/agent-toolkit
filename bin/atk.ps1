@@ -290,7 +290,7 @@ switch ($Command) {
         if ($updateAll -or ($currentDir -eq $ToolkitDir) -or ($currentDir -eq $HOME)) {
             & $py $manageScript --update-all
         } else {
-            if ((Test-Path ".agents") -or (Test-Path ".claude") -or (Test-Path ".cursor") -or (Test-Path ".github")) {
+            if ((Test-Path ".agents") -or (Test-Path ".claude") -or (Test-Path ".cursor") -or (Test-Path ".github") -or (Test-Path ".codex")) {
                 Write-Host "📦 Refreshing configurations in current project..."
                 $installScript = Join-Path $ToolkitDir "install.ps1"
                 if ($remaining.Count -gt 0) {

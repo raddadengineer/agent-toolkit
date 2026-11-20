@@ -1,6 +1,6 @@
 # 🛠️ Agent Toolkit
 
-A centralized, reusable library of high-leverage skills, specialized subagents, and automated developer workflows for AI pair programming assistants (**Google Antigravity**, **Gemini CLI**, **Claude Code**, **Cursor**, **GitHub Copilot**, and **Roo Code / Cline**).
+A centralized, reusable library of high-leverage skills, specialized subagents, and automated developer workflows for AI pair programming assistants (**Google Antigravity**, **Gemini CLI**, **Claude Code**, **OpenAI Codex**, **Cursor**, **GitHub Copilot**, and **Roo Code / Cline**).
 
 Instead of recreating session scripts, agent definitions, and context rules across separate repositories, `agent-toolkit` provides a single source of truth that maintains project continuity, enforces engineering discipline, minimizes token consumption, and eliminates repetitive context synchronization.
 
@@ -133,6 +133,7 @@ All skills are delivered via **progressive disclosure** (`.agents/skills/`), and
 | Tool | Export Path | Native Integration |
 | :--- | :--- | :--- |
 | **Claude Code** | `.claude/commands/`<br>`CLAUDE.md` | 18 interactive slash commands (`/session-starter`, `/code-review`, `/memory-manager`, `/sys-admin`, etc.) |
+| **OpenAI Codex** | `.codex/config.toml`<br>`.codex/agents/*.toml`<br>`.agents/skills/`, `AGENTS.md` | 18 progressive skills, 11 sandboxed TOML subagents (`read-only` / `workspace-write`) & MCP config |
 | **Cursor** | `.cursor/rules/*.mdc`<br>`.cursorrules` | 18 Cursor 2.0 MDC rules with glob trigger conditions and engineering standards |
 | **GitHub Copilot** | `.github/copilot-instructions.md`<br>`.github/prompts/` | Global repo instructions and 18 reusable `.prompt.md` slash templates |
 | **Roo Code / Cline** | `.roomodes`<br>`.clinerules` | 11 multi-agent JSON personas (`software-engineer`, `code-reviewer`, `devops-engineer`, `sys-admin`, etc.) |
@@ -161,7 +162,7 @@ agent-toolkit/
 ├── scripts/                           # Central CLI engines, adapters & sentinels
 ├── hooks/                             # Antigravity PreToolUse and PostToolUse hooks
 ├── mcp/                               # Native MCP suite: Playwright, GitHub, SQLite
-└── tests/                             # 154 deterministic unit tests (Zero False Verification)
+└── tests/                             # 158 deterministic unit tests (Zero False Verification)
 ```
 
 ---

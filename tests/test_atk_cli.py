@@ -46,6 +46,19 @@ class TestAtkCli(unittest.TestCase):
         self.assertTrue((claude_commands / "session-starter.md").exists())
         self.assertTrue((self.target / "CLAUDE.md").exists())
 
+    def test_atk_install_codex(self):
+        env = dict(os.environ, AGENT_TOOLKIT_REGISTRY=str(self.target / "reg.json"))
+        result = subprocess.run(
+            [str(ATK_BIN), "install", "--target", str(self.target), "--tool", "codex"],
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+        self.assertEqual(result.returncode, 0)
+        self.assertTrue((self.target / ".codex" / "config.toml").exists())
+        self.assertTrue((self.target / ".codex" / "agents" / "sys_admin.toml").exists())
+        self.assertTrue((self.target / ".agents" / "skills" / "sys-admin").exists())
+
     def test_atk_unknown_command(self):
         result = subprocess.run([str(ATK_BIN), "foobar_invalid"], capture_output=True, text=True)
         self.assertEqual(result.returncode, 1)

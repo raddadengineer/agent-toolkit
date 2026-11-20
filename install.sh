@@ -51,7 +51,7 @@ Options:
       --install-dir <path> Custom central toolkit directory for web install (default: ~/.agent-toolkit)
   -t, --target <path>      Target project repository path (default: current directory)
       --tool <name>        Export configurations for a specific AI assistant:
-                           all, claude, cursor, copilot, roo, windsurf, antigravity
+                           all, claude, cursor, copilot, codex, roo, windsurf, antigravity
   -s, --skill <name>       Install specific skill by name (e.g., session-closer)
   -a, --agent <name>       Install specific agent by name (e.g., software_engineer)
       --all                Install all available skills and agents (.agents/)
@@ -115,6 +115,7 @@ list_components() {
     echo "  • claude       (Claude Code: .claude/commands/, CLAUDE.md)"
     echo "  • cursor       (Cursor: .cursor/rules/*.mdc, .cursorrules)"
     echo "  • copilot      (GitHub Copilot: .github/copilot-instructions.md, prompts/)"
+    echo "  • codex        (OpenAI Codex: .codex/config.toml, .codex/agents/*.toml, .agents/skills/, AGENTS.md)"
     echo "  • roo          (Roo Code / Cline / OpenCode: .roomodes, .clinerules)"
     echo "  • windsurf     (Windsurf: .windsurfrules)"
     echo "  • antigravity  (Google Antigravity & Gemini CLI: .agents/)"

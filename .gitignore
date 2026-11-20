@@ -85,6 +85,7 @@ repro.ps1
 # Local Agent Installations & Exported Tool Adapters
 .agents/
 .claude/
+.codex/
 .cursor/
 .cursorrules
 .roomodes

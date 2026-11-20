@@ -120,7 +120,7 @@ Options:
   -InstallDir <path>       Custom central toolkit directory for web install (default: ~/.agent-toolkit)
   -Target <path>, -t       Target project repository path (default: current directory)
   -Tool <name>             Export configurations for a specific AI assistant:
-                           all, claude, cursor, copilot, roo, windsurf, antigravity
+                           all, claude, cursor, copilot, codex, roo, windsurf, antigravity
   -Skill <name>, -s        Install specific skill by name (e.g., session-closer)
   -Agent <name>, -a        Install specific agent by name (e.g., software_engineer)
   -All                     Install all available skills and agents (.agents/)
@@ -241,6 +241,7 @@ function Show-Components {
     Write-Host "  • claude       (Claude Code: .claude/commands/, CLAUDE.md)"
     Write-Host "  • cursor       (Cursor: .cursor/rules/*.mdc, .cursorrules)"
     Write-Host "  • copilot      (GitHub Copilot: .github/copilot-instructions.md, prompts/)"
+    Write-Host "  • codex        (OpenAI Codex: .codex/config.toml, .codex/agents/*.toml, .agents/skills/, AGENTS.md)"
     Write-Host "  • roo          (Roo Code / Cline / OpenCode: .roomodes, .clinerules)"
     Write-Host "  • windsurf     (Windsurf: .windsurfrules)"
     Write-Host "  • antigravity  (Google Antigravity & Gemini CLI: .agents/)"

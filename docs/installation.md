@@ -40,7 +40,8 @@ This guide explains how `agent-toolkit` installs, links, and updates across diff
                        ▼
 ┌──────────────────────────────────────────────┐
 │  Target Project (/path/to/my-project)        │
-│  ├── .agents/skills/    (Antigravity/Gemini) │
+│  ├── .agents/skills/    (Antigravity/Codex)  │
+│  ├── .codex/            (OpenAI Codex TOMLs) │
 │  ├── .claude/commands/  (Claude Code)        │
 │  ├── .cursor/rules/     (Cursor MDC)         │
 │  ├── .github/prompts/   (Copilot)            │
@@ -165,7 +166,11 @@ If you only use a specific AI assistant, you can install just its configuration:
 ./install.sh --target /path/to/my-project --tool antigravity
 # (or ./install.sh --target /path/to/my-project --all)
 
-# 7. Utilities:
+# 7. OpenAI Codex (.codex/config.toml, .codex/agents/*.toml, .agents/skills/, AGENTS.md):
+./install.sh --target /path/to/my-project --tool codex
+# (or 'atk install --tool codex' from inside your project)
+
+# 8. Utilities:
 ./install.sh --web          # Install or refresh central toolkit directly from web repository
 ./install.sh --global       # Symlink 'atk' into ~/.local/bin and configure shell profiles
 ./install.sh --powershell   # Explicitly configure PowerShell profile with 'atk' function
@@ -253,5 +258,5 @@ cd ~/agent-toolkit
 ## 👥 Team Repositories & Git Hygiene
 
 When sharing a project repository with a team:
-* **Using `--mode copy` (Team Setup)**: Commit the generated `.agents/`, `.cursor/`, `.claude/`, `.github/`, and `SESSION_LOG.md` files to version control so all team members and AI assistants share identical standards.
-* **Using `--mode symlink` (Personal Local Setup)**: If teammates do not use `agent-toolkit`, you can add `.agents/`, `.claude/`, and `.roomodes` to your repository's `.gitignore` or global `~/.gitignore_global`.
+* **Using `--mode copy` (Team Setup)**: Commit the generated `.agents/`, `.codex/`, `.cursor/`, `.claude/`, `.github/`, and `SESSION_LOG.md` files to version control so all team members and AI assistants share identical standards.
+* **Using `--mode symlink` (Personal Local Setup)**: If teammates do not use `agent-toolkit`, you can add `.agents/`, `.codex/`, `.claude/`, and `.roomodes` to your repository's `.gitignore` or global `~/.gitignore_global`.

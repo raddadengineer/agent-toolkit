@@ -249,7 +249,7 @@ case "${COMMAND}" in
         if [ "$update_all" = true ] || [ "$(pwd)" = "${TOOLKIT_DIR}" ] || [ "$(pwd)" = "${HOME}" ]; then
             python3 "${TOOLKIT_DIR}/scripts/manage_installs.py" --update-all
         else
-            if [ -d ".agents" ] || [ -d ".claude" ] || [ -d ".cursor" ] || [ -d ".github" ]; then
+            if [ -d ".agents" ] || [ -d ".claude" ] || [ -d ".cursor" ] || [ -d ".github" ] || [ -d ".codex" ]; then
                 echo "📦 Refreshing configurations in current project..."
                 if [ ${#remaining_args[@]} -gt 0 ]; then
                     "${TOOLKIT_DIR}/install.sh" --target "$(pwd)" --tool all "${remaining_args[@]}"

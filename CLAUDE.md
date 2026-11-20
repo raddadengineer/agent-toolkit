@@ -4,7 +4,7 @@ Welcome to `agent-toolkit`, a centralized library of reusable skills, specialize
 
 ## 🏗️ Technology Stack & Environment
 - **Runtime & Language**: Python 3.10+, Bash shell (`set -euo pipefail`).
-- **AI Tool Ecosystem**: Google Antigravity & Gemini CLI (`agy`), Claude Code, Cursor 2.0 (MDC), GitHub Copilot, Roo Code / Cline, Windsurf.
+- **AI Tool Ecosystem**: Google Antigravity & Gemini CLI (`agy`), Claude Code, OpenAI Codex, Cursor 2.0 (MDC), GitHub Copilot, Roo Code / Cline, Windsurf.
 - **Testing**: Python standard library `unittest` (`python3 -m unittest discover -s tests`).
 - **Sentinels & Guards**: AST-based drift sentinel (`skills/doc-sync/scripts/check_doc_drift.py`), pre-tool safety guards (`scripts/guard_command.py`), post-tool auto-formatters (`scripts/auto_format.py`).
 

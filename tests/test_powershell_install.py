@@ -208,6 +208,28 @@ class TestPowerShellInstall(unittest.TestCase):
         self.assertTrue((self.target / "CLAUDE.md").exists())
 
     @unittest.skipIf(PWSH_BIN is None, "PowerShell (pwsh or powershell) not installed")
+    def test_install_ps1_target_codex(self):
+        env = dict(os.environ, AGENT_TOOLKIT_REGISTRY=str(self.target / "reg.json"))
+        result = subprocess.run(
+            [
+                PWSH_BIN,
+                "-NoProfile",
+                str(INSTALL_PS1),
+                "-Target",
+                str(self.target),
+                "-Tool",
+                "codex",
+            ],
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+        self.assertEqual(result.returncode, 0)
+        self.assertTrue((self.target / ".codex" / "config.toml").exists())
+        self.assertTrue((self.target / ".codex" / "agents" / "sys_admin.toml").exists())
+        self.assertTrue((self.target / ".agents" / "skills" / "sys-admin").exists())
+
+    @unittest.skipIf(PWSH_BIN is None, "PowerShell (pwsh or powershell) not installed")
     def test_install_ps1_all_components(self):
         result = subprocess.run(
             [

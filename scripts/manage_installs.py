@@ -93,14 +93,15 @@ def detect_project_config(project_dir: Path) -> Optional[Tuple[str, str]]:
     if not project_dir.is_dir():
         return None
 
+    has_codex = (project_dir / ".codex" / "config.toml").exists() or (project_dir / ".codex" / "agents").is_dir()
+    has_antigravity_agents = (project_dir / ".agents" / "agents").is_dir() or (project_dir / ".agents" / "hooks.json").exists() or (project_dir / ".agents" / "hooks.json").is_symlink()
+    has_skills = (project_dir / ".agents" / "skills" / "session-starter").exists() or (project_dir / ".agents" / "skills" / "session-starter").is_symlink()
+
     detected_tools = []
-    if (
-        (project_dir / ".agents" / "skills" / "session-starter").exists()
-        or (project_dir / ".agents" / "skills" / "session-starter").is_symlink()
-        or (project_dir / ".agents" / "hooks.json").exists()
-        or (project_dir / ".agents" / "hooks.json").is_symlink()
-    ):
+    if has_antigravity_agents or (has_skills and not has_codex):
         detected_tools.append("antigravity")
+    if has_codex:
+        detected_tools.append("codex")
     if (project_dir / ".claude" / "commands" / "session-starter.md").exists():
         detected_tools.append("claude")
     if (project_dir / ".cursor" / "rules" / "engineering-standards.mdc").exists():

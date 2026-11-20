@@ -164,7 +164,7 @@ Cross-platform system administration, infrastructure security hardening, and Pri
 
 ## 🤖 Specialized Subagents
 
-Subagents are isolated system personas defined in `.agents/agents/` that can be invoked via Google Antigravity, Claude Code, Cursor, or Roo Code:
+Subagents are isolated system personas defined in `.agents/agents/` (and exported to `.codex/agents/*.toml` for OpenAI Codex) that can be invoked via Google Antigravity, OpenAI Codex, Claude Code, Cursor, or Roo Code:
 
 | Subagent | Role | Primary Focus |
 | :--- | :--- | :--- |

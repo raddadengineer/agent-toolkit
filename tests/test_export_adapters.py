@@ -115,6 +115,78 @@ class TestExportAdapters(unittest.TestCase):
 
         self.assertTrue((self.target / ".clinerules").exists())
 
+    def test_export_codex(self):
+        for mode in ("copy", "symlink"):
+            target_dir = self.target / f"codex_{mode}"
+            target_dir.mkdir(parents=True, exist_ok=True)
+            results = export_adapters.export_tool_adapters(self.toolkit, target_dir, "codex", mode=mode)
+            self.assertIn("OpenAI Codex", results)
+
+            config_toml = target_dir / ".codex" / "config.toml"
+            agents_dir = target_dir / ".codex" / "agents"
+            self.assertTrue(config_toml.exists())
+            self.assertTrue((target_dir / ".agents" / "skills" / "sys-admin").exists())
+            self.assertTrue((target_dir / ".agents" / "scripts").exists())
+            self.assertTrue((target_dir / "AGENTS.md").exists())
+
+            expected_agents = [
+                "software_engineer",
+                "code_reviewer",
+                "test_engineer",
+                "system_architect",
+                "context_optimizer",
+                "debugger",
+                "security_auditor",
+                "database_engineer",
+                "devops_engineer",
+                "research",
+                "sys_admin",
+            ]
+            for name in expected_agents:
+                self.assertTrue((agents_dir / f"{name}.toml").exists(), f"Missing {name}.toml")
+
+            cfg_text = config_toml.read_text(encoding="utf-8")
+            self.assertIn("[mcp_servers.playwright]", cfg_text)
+            self.assertIn("[mcp_servers.github]", cfg_text)
+            self.assertIn("[mcp_servers.sqlite]", cfg_text)
+
+            reviewer_text = (agents_dir / "code_reviewer.toml").read_text(encoding="utf-8")
+            sec_text = (agents_dir / "security_auditor.toml").read_text(encoding="utf-8")
+            swe_text = (agents_dir / "software_engineer.toml").read_text(encoding="utf-8")
+            sys_text = (agents_dir / "sys_admin.toml").read_text(encoding="utf-8")
+
+            self.assertIn('sandbox_mode = "read-only"', reviewer_text)
+            self.assertIn('sandbox_mode = "read-only"', sec_text)
+            self.assertIn('sandbox_mode = "workspace-write"', swe_text)
+            self.assertIn('sandbox_mode = "workspace-write"', sys_text)
+
+            # Strict TOML parse when Python 3.11+ tomllib is present
+            try:
+                import tomllib  # type: ignore[import-not-found]
+                parsed_cfg = tomllib.loads(cfg_text)
+                self.assertIn("mcp_servers", parsed_cfg)
+                for toml_path in agents_dir.glob("*.toml"):
+                    parsed_agent = tomllib.loads(toml_path.read_text(encoding="utf-8"))
+                    self.assertIn("name", parsed_agent)
+                    self.assertIn("description", parsed_agent)
+                    self.assertIn("developer_instructions", parsed_agent)
+            except ImportError:
+                for toml_path in agents_dir.glob("*.toml"):
+                    content = toml_path.read_text(encoding="utf-8")
+                    self.assertIn("name =", content)
+                    self.assertIn("description =", content)
+                    self.assertIn('developer_instructions = """\n', content)
+                    self.assertTrue(content.endswith('\n"""\n'), f"Missing closing triple quotes in {toml_path.name}")
+                    self.assertEqual(content.replace('\\"\\"\\"', '').count('"""'), 2, f"Unbalanced triple quotes in {toml_path.name}")
+
+        # Verify custom user .codex/config.toml without marker is preserved
+        custom_target = self.target / "codex_custom"
+        (custom_target / ".codex").mkdir(parents=True)
+        custom_cfg = custom_target / ".codex" / "config.toml"
+        custom_cfg.write_text('model = "custom-user-model"\n', encoding="utf-8")
+        export_adapters.export_tool_adapters(self.toolkit, custom_target, "codex")
+        self.assertEqual(custom_cfg.read_text(encoding="utf-8"), 'model = "custom-user-model"\n')
+
     def test_export_all(self):
         results = export_adapters.export_tool_adapters(self.toolkit, self.target, "all")
         self.assertIn("Claude Code", results)
@@ -123,6 +195,7 @@ class TestExportAdapters(unittest.TestCase):
         self.assertIn("Roo Code / Cline / OpenCode", results)
         self.assertIn("Windsurf", results)
         self.assertIn("Google Antigravity & Gemini CLI", results)
+        self.assertIn("OpenAI Codex", results)
 
         # Check antigravity hooks, mcp, and scripts
         agents_dir = self.target / ".agents"
@@ -131,6 +204,8 @@ class TestExportAdapters(unittest.TestCase):
         self.assertTrue((agents_dir / "scripts").exists())
         self.assertTrue((agents_dir / "skills" / "sys-admin").exists())
         self.assertTrue((agents_dir / "agents" / "sys_admin").exists())
+        self.assertTrue((self.target / ".codex" / "config.toml").exists())
+        self.assertTrue((self.target / ".codex" / "agents" / "sys_admin.toml").exists())
 
 
 if __name__ == "__main__":

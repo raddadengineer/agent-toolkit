@@ -10,12 +10,14 @@ configuration formats for:
   - Roo Code / Cline / OpenCode (.roomodes, .clinerules)
   - Windsurf (.windsurfrules)
   - Google Antigravity & Gemini CLI (.agents/, AGENTS.md, GEMINI.md)
+  - OpenAI Codex (.codex/config.toml, .codex/agents/*.toml, .agents/skills/, AGENTS.md)
 
 Usage:
     python3 export_adapters.py --target /path/to/project --tool all
     python3 export_adapters.py --target /path/to/project --tool claude
     python3 export_adapters.py --target /path/to/project --tool cursor
     python3 export_adapters.py --target /path/to/project --tool copilot
+    python3 export_adapters.py --target /path/to/project --tool codex
     python3 export_adapters.py --target /path/to/project --tool roo
     python3 export_adapters.py --target /path/to/project --tool windsurf
 """
@@ -23,10 +25,73 @@ Usage:
 import argparse
 import json
 import os
+import re
 import shutil
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
+
+
+def _toml_basic_str(value: str) -> str:
+    """Escapes a Python string as a single-line TOML basic string."""
+    escaped = (
+        value.replace("\\", "\\\\")
+        .replace('"', '\\"')
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+        .replace("\t", "\\t")
+    )
+    return f'"{escaped}"'
+
+
+def _toml_multiline_str(value: str) -> str:
+    """Escapes a Python string as a multi-line TOML basic string."""
+    normalized = value.replace("\r\n", "\n")
+    escaped = normalized.replace("\\", "\\\\").replace('"""', '\\"\\"\\"')
+    escaped = re.sub(r'"+$', lambda m: '\\"' * len(m.group(0)), escaped)
+    return f'"""\n{escaped}\n"""'
+
+
+def _parse_agent_markdown(text: str, default_name: str) -> Tuple[Dict[str, Any], str]:
+    """Parses YAML frontmatter (name, description, tools) and body from agent.md."""
+    meta: Dict[str, Any] = {"name": default_name, "description": "", "tools": []}
+    lines = text.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return meta, text.strip()
+
+    end_idx = None
+    for i in range(1, len(lines)):
+        if lines[i].strip() == "---":
+            end_idx = i
+            break
+    if end_idx is None:
+        return meta, text.strip()
+
+    frontmatter = lines[1:end_idx]
+    body = "\n".join(lines[end_idx + 1 :]).strip()
+    in_tools = False
+    for raw in frontmatter:
+        stripped = raw.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        if in_tools and stripped.startswith("- "):
+            tool_name = stripped[2:].strip().strip("'\"")
+            if tool_name:
+                meta["tools"].append(tool_name)
+            continue
+        in_tools = False
+        if ":" in stripped:
+            key, val = stripped.split(":", 1)
+            key = key.strip()
+            val = val.strip().strip("'\"")
+            if key == "tools":
+                if val.startswith("[") and val.endswith("]"):
+                    meta["tools"] = [t.strip().strip("'\"") for t in val[1:-1].split(",") if t.strip()]
+                else:
+                    in_tools = True
+            elif key in {"name", "description"} and val:
+                meta[key] = val
+    return meta, body
 
 
 def get_toolkit_dir() -> Path:
@@ -976,6 +1041,131 @@ Act as a Principal Systems Administrator and SRE. Run read-only USE/RED triage (
 
         return created
 
+    def _sync_dir_or_file(self, src: Path, dest: Path, mode: str) -> None:
+        if dest.exists() or dest.is_symlink():
+            if dest.is_symlink() or dest.is_file():
+                dest.unlink()
+            else:
+                shutil.rmtree(dest)
+        if mode == "symlink":
+            dest.symlink_to(src)
+        elif src.is_dir():
+            shutil.copytree(src, dest)
+        else:
+            shutil.copy2(src, dest)
+
+    # --------------------------------------------------------------------------
+    # 7. OpenAI Codex (.codex/ & .agents/skills/ & AGENTS.md)
+    # --------------------------------------------------------------------------
+    def export_codex(self, mode: str = "symlink") -> List[str]:
+        created = []
+        codex_dir = self.target_dir / ".codex"
+        agents_out_dir = codex_dir / "agents"
+        agents_out_dir.mkdir(parents=True, exist_ok=True)
+
+        # 1. Export subagents to .codex/agents/<name>.toml
+        agents_src = self.toolkit_dir / "agents"
+        if agents_src.exists():
+            for agent_dir in sorted(agents_src.iterdir()):
+                if not agent_dir.is_dir():
+                    continue
+                agent_md = agent_dir / "agent.md"
+                if not agent_md.is_file():
+                    continue
+                meta, body = _parse_agent_markdown(agent_md.read_text(encoding="utf-8"), agent_dir.name)
+                instruction_parts = [body] if body else []
+                rules_dir = agent_dir / "rules"
+                if rules_dir.is_dir():
+                    for rule_file in sorted(rules_dir.glob("*.md")):
+                        rule_text = rule_file.read_text(encoding="utf-8").strip()
+                        if rule_text:
+                            instruction_parts.append(rule_text)
+                developer_instructions = "\n\n---\n\n".join(instruction_parts)
+                tools_set = set(meta.get("tools", []))
+                sandbox_mode = "workspace-write" if (tools_set & {"replace_file_content", "write_to_file"}) else "read-only"
+
+                toml_lines = [
+                    "# Generated by agent-toolkit",
+                    f"name = {_toml_basic_str(meta['name'])}",
+                    f"description = {_toml_basic_str(meta.get('description') or meta['name'])}",
+                    f"sandbox_mode = {_toml_basic_str(sandbox_mode)}",
+                    f"developer_instructions = {_toml_multiline_str(developer_instructions)}",
+                ]
+                dest_toml = agents_out_dir / f"{agent_dir.name}.toml"
+                dest_toml.write_text("\n".join(toml_lines) + "\n", encoding="utf-8")
+                created.append(str(dest_toml.relative_to(self.target_dir)))
+
+        # 2. Export .codex/config.toml (preserve user-customized configs lacking marker)
+        config_marker = "# Generated by agent-toolkit"
+        config_file = codex_dir / "config.toml"
+        should_write_config = True
+        if config_file.exists():
+            existing_cfg = read_file_safe(config_file)
+            if config_marker not in existing_cfg:
+                should_write_config = False
+
+        if should_write_config:
+            cfg_lines = [
+                config_marker,
+                'project_doc_fallback_filenames = ["AGENTS.md", "CLAUDE.md", "GEMINI.md"]',
+            ]
+            mcp_src = self.toolkit_dir / "mcp" / "mcp_config.json"
+            if mcp_src.exists():
+                try:
+                    mcp_data = json.loads(mcp_src.read_text(encoding="utf-8"))
+                    servers = mcp_data.get("mcpServers", {})
+                    for srv_name, srv_cfg in servers.items():
+                        if not isinstance(srv_cfg, dict):
+                            continue
+                        safe_srv = srv_name if re.match(r"^[A-Za-z0-9_-]+$", srv_name) else _toml_basic_str(srv_name)
+                        cfg_lines.append("")
+                        cfg_lines.append(f"[mcp_servers.{safe_srv}]")
+                        if srv_cfg.get("command"):
+                            cfg_lines.append(f"command = {_toml_basic_str(str(srv_cfg['command']))}")
+                        args_list = srv_cfg.get("args", [])
+                        if isinstance(args_list, list):
+                            formatted_args = ", ".join(_toml_basic_str(str(a)) for a in args_list)
+                            cfg_lines.append(f"args = [{formatted_args}]")
+                        env_map = srv_cfg.get("env", {})
+                        if isinstance(env_map, dict) and env_map:
+                            cfg_lines.append("")
+                            cfg_lines.append(f"[mcp_servers.{safe_srv}.env]")
+                            for ek, ev in env_map.items():
+                                safe_ek = ek if re.match(r"^[A-Za-z0-9_-]+$", ek) else _toml_basic_str(ek)
+                                cfg_lines.append(f"{safe_ek} = {_toml_basic_str(str(ev))}")
+                except (OSError, ValueError) as exc:
+                    sys.stderr.write(f"⚠️ Warning: Could not parse mcp_config.json for Codex config: {exc}\n")
+
+            config_file.write_text("\n".join(cfg_lines) + "\n", encoding="utf-8")
+            created.append(str(config_file.relative_to(self.target_dir)))
+
+        # 3. Link/copy skills and scripts under .agents/ for native Codex skill discovery
+        target_agents_dir = self.target_dir / ".agents"
+        skills_dest = target_agents_dir / "skills"
+        skills_dest.mkdir(parents=True, exist_ok=True)
+        skills_src = self.toolkit_dir / "skills"
+        if skills_src.exists():
+            for s in sorted(skills_src.iterdir()):
+                if s.is_dir():
+                    dest = skills_dest / s.name
+                    self._sync_dir_or_file(s, dest, mode)
+                    created.append(f".agents/skills/{s.name}")
+
+        scripts_src = self.toolkit_dir / "scripts"
+        if scripts_src.exists():
+            dest_scripts = target_agents_dir / "scripts"
+            self._sync_dir_or_file(scripts_src, dest_scripts, mode)
+            created.append(".agents/scripts")
+
+        # 4. Ensure AGENTS.md exists
+        agents_md = self.target_dir / "AGENTS.md"
+        if not agents_md.exists():
+            base_content = f"# Project Guidelines & Architecture\n\n{self.eng_standards}\n"
+            agents_md.write_text(base_content, encoding="utf-8")
+            created.append("AGENTS.md")
+
+        return created
+
 
 def export_tool_adapters(toolkit_dir: Path, target_dir: Path, tool: str, mode: str = "symlink") -> Dict[str, List[str]]:
     """Exports configurations for specified tool or all tools."""
@@ -1002,6 +1192,9 @@ def export_tool_adapters(toolkit_dir: Path, target_dir: Path, tool: str, mode: s
     if tool in ["antigravity", "gemini", "all"]:
         results["Google Antigravity & Gemini CLI"] = exporter.export_antigravity(mode=mode)
 
+    if tool in ["codex", "openai-codex", "all"]:
+        results["OpenAI Codex"] = exporter.export_codex(mode=mode)
+
     return results
 
 
@@ -1012,7 +1205,7 @@ def main():
         "--tool",
         type=str,
         default="all",
-        choices=["all", "claude", "cursor", "copilot", "roo", "opencode", "cline", "windsurf", "antigravity", "gemini"],
+        choices=["all", "claude", "cursor", "copilot", "codex", "openai-codex", "roo", "opencode", "cline", "windsurf", "antigravity", "gemini"],
         help="Target AI tool ecosystem (default: all)",
     )
     parser.add_argument(
