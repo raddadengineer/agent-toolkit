@@ -27,6 +27,7 @@
   - [Dependency Auditor (`audit_deps.py`)](#dependency-auditor-audit_depspy)
   - [Release Manager (`manage_release.py`)](#release-manager-manage_releasepy)
   - [Documentation Drift Sentinel (`check_doc_drift.py`)](#documentation-drift-sentinel-check_doc_driftpy)
+  - [System Administration & SRE (`sys_admin.py`)](#system-administration--sre-sys_adminpy)
 
 ---
 
@@ -65,6 +66,7 @@ atk docker audit                # Audit Dockerfiles for root execution & caching
 atk ci audit                    # Audit GitHub Actions workflows for security hazards
 atk dep audit                   # Scan dependencies for wildcards & deprecations
 atk release bump                # Calculate next SemVer bump from Conventional Commits
+atk sysadmin --health           # Run host diagnostics, TLS/port checks, audits & scaffolds
 atk drift                       # Run documentation and schema drift sentinel
 ```
 
@@ -308,4 +310,30 @@ python3 .agents/skills/doc-sync/scripts/check_doc_drift.py --check
 
 # 2. Synchronize scripts between skills/*/scripts/ and scripts/:
 python3 .agents/skills/doc-sync/scripts/check_doc_drift.py --sync-scripts
+```
+
+### System Administration & SRE (`sys_admin.py`)
+
+```bash
+# 1. Run deep cross-platform host health triage (ports, inodes, processes, FDs):
+python3 .agents/skills/sys-admin/scripts/sys_admin.py --health --ports --processes --json
+
+# 2. Condense logs, audit live host SSH/umask posture, and probe endpoints:
+python3 .agents/skills/sys-admin/scripts/sys_admin.py --triage-logs /var/log/nginx --json
+python3 .agents/skills/sys-admin/scripts/sys_admin.py --audit-host --check
+python3 .agents/skills/sys-admin/scripts/sys_admin.py --check-endpoints endpoints.json --check
+python3 .agents/skills/sys-admin/scripts/sys_admin.py --ssh ops@bastion.internal --json
+
+# 3. Audit server, K8s/Compose, Caddy, sudoers, firewall, script & IaC manifests with native linting & baselines:
+python3 .agents/skills/sys-admin/scripts/sys_admin.py --audit . --native-lint --check
+python3 .agents/skills/sys-admin/scripts/sys_admin.py --audit . --write-baseline .sysadmin-baseline.json
+
+# 4. Transactionally apply configs with dry-run, validation & auto-rollback, and track host drift:
+python3 .agents/skills/sys-admin/scripts/sys_admin.py --apply-safe ./nginx.conf /etc/nginx/conf.d/app.conf --validate-cmd "nginx -t" --dry-run
+python3 .agents/skills/sys-admin/scripts/sys_admin.py --snapshot host-baseline.json
+python3 .agents/skills/sys-admin/scripts/sys_admin.py --diff-snapshot host-baseline.json --json
+
+# 5. Scaffold hardened templates (systemd, nginx, backup, backup-ps1, cron, sshd, runbook, postmortem):
+python3 .agents/skills/sys-admin/scripts/sys_admin.py --list-templates
+python3 .agents/skills/sys-admin/scripts/sys_admin.py --scaffold systemd --name api-server
 ```

@@ -6,9 +6,13 @@ Unit tests for manage_installs.py — Project Installation Registry & Multi-Proj
 import json
 import os
 import shutil
+import sys
 import tempfile
 import unittest
 from pathlib import Path
+
+TOOLKIT_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(TOOLKIT_ROOT))
 
 from scripts.manage_installs import (
     detect_project_config,
@@ -22,8 +26,6 @@ from scripts.manage_installs import (
     unregister_project,
     update_all_projects,
 )
-
-TOOLKIT_ROOT = Path(__file__).resolve().parent.parent
 
 
 class TestManageInstalls(unittest.TestCase):

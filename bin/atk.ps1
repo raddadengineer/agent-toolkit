@@ -93,6 +93,7 @@ DevOps, Release & Ecosystem:
   ci [opts]            Synthesize & audit CI/CD workflows (synthesize_ci.py)
   dep [opts]           Audit dependencies for wildcards & deprecations (audit_deps.py)
   release [opts]       Calculate semver bumps & draft release notes (manage_release.py)
+  sysadmin [opts]      Host health triage, config hardening & ops scaffolding (sys_admin.py)
 
 Toolkit Management:
   list                 List available skills, subagents, and AI assistants
@@ -255,6 +256,10 @@ switch ($Command) {
     }
     'release' {
         $script = Join-Path $ToolkitDir "skills/release-manager/scripts/manage_release.py"
+        & $py $script @RemainingArgs
+    }
+    { $_ -in @('sysadmin', 'sys', 'ops') } {
+        $script = Join-Path $ToolkitDir "skills/sys-admin/scripts/sys_admin.py"
         & $py $script @RemainingArgs
     }
     'list' {

@@ -79,6 +79,9 @@ Harness these specialized agents via `invoke_subagent`:
 9. **`devops_engineer` (Containers, CI/CD & Release Engineering)**:
    * **Mandate**: Hardens multi-stage Dockerfiles, synthesizes and audits CI/CD pipelines, scans dependency manifests, and manages SemVer releases.
    * **Protocol**: Invoke when touching `Dockerfile`, `.github/workflows/`, package manifests, or preparing tagged releases.
+10. **`sys_admin` (System Administration, Infrastructure Hardening & SRE Triage)**:
+   * **Mandate**: Performs live host/network/TLS triage, audits server configs (`sshd`, `systemd`, `nginx`, `sysctl`, `cron`), shell/PowerShell ops scripts, and Terraform/Ansible manifests, and scaffolds hardened ops templates, runbooks, and postmortems.
+   * **Protocol**: Invoke when diagnosing host/service/TLS incidents or modifying server configs, ops scripts, systemd units, Nginx proxies, or infrastructure manifests.
 
 ### C. Dynamic Expert Synthesis (`define_subagent`)
 When a task demands niche domain expertise not covered by standard agents (e.g., SQLite migration specialist, cryptographic key rotation auditor, WebGL shader debugger):

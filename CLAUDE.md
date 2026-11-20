@@ -27,6 +27,7 @@ Welcome to `agent-toolkit`, a centralized library of reusable skills, specialize
   - `memory-manager/`: Scoped persistent developer memory, pattern/anti-pattern store, and SHA-256 integrity auditor.
   - `dreamer/`: Out-of-band offline memory consolidation and pattern distillation loop.
   - `doc-sync/`: Filesystem vs documentation drift and broken link sentinel.
+  - `sys-admin/`: Cross-platform host triage, server/IaC hardening auditor, TLS/network checks, and ops/runbook scaffolder.
 - `memory/`: Structured persistent repository memory store (`patterns/`, `anti-patterns/`, `rules/`, `decisions/`, `index.json`).
 - `agents/`: Specialized subagent system prompts, persona configurations, and capability definitions.
 - `scripts/`: Multi-tool configuration compilers (`export_adapters.py`), context compressors, hooks, and validators.

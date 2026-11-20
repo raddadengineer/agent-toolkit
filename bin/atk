@@ -53,6 +53,7 @@ DevOps, Release & Ecosystem:
   ci [opts]            Synthesize & audit CI/CD workflows (synthesize_ci.py)
   dep [opts]           Audit dependencies for wildcards & deprecations (audit_deps.py)
   release [opts]       Calculate semver bumps & draft release notes (manage_release.py)
+  sysadmin [opts]      Host health triage, config hardening & ops scaffolding (sys_admin.py)
 
 Toolkit Management:
   list                 List available skills, subagents, and AI assistants
@@ -106,11 +107,17 @@ case "${COMMAND}" in
         if [ $# -eq 0 ]; then
             "${TOOLKIT_DIR}/install.sh" --target "$(pwd)" --tool all
         else
+            target_args=()
             if [[ ! " $* " =~ " --target " ]] && [[ ! " $* " =~ " -t " ]]; then
-                "${TOOLKIT_DIR}/install.sh" --target "$(pwd)" "$@"
-            else
-                "${TOOLKIT_DIR}/install.sh" "$@"
+                target_args=(--target "$(pwd)")
             fi
+
+            tool_args=()
+            if [[ ! " $* " =~ " --tool " ]] && [[ ! " $* " =~ " --all " ]] && [[ ! " $* " =~ " -s " ]] && [[ ! " $* " =~ " --skill " ]] && [[ ! " $* " =~ " -a " ]] && [[ ! " $* " =~ " --agent " ]] && [[ ! " $* " =~ " -l " ]] && [[ ! " $* " =~ " --list " ]] && [[ ! " $* " =~ " -g " ]] && [[ ! " $* " =~ " --global " ]] && [[ ! " $* " =~ " -p " ]] && [[ ! " $* " =~ " --powershell " ]]; then
+                tool_args=(--tool all)
+            fi
+
+            "${TOOLKIT_DIR}/install.sh" "${target_args[@]}" "${tool_args[@]}" "$@"
         fi
         ;;
     start|prime|session-starter)
@@ -210,6 +217,10 @@ case "${COMMAND}" in
     release)
         shift
         python3 "${TOOLKIT_DIR}/skills/release-manager/scripts/manage_release.py" "$@"
+        ;;
+    sysadmin|sys|ops)
+        shift
+        python3 "${TOOLKIT_DIR}/skills/sys-admin/scripts/sys_admin.py" "$@"
         ;;
     list)
         shift

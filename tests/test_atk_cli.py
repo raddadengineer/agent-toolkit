@@ -111,6 +111,12 @@ class TestAtkCli(unittest.TestCase):
         self.assertEqual(result.returncode, 0)
         self.assertIn("Solo Developer Out-of-Band Memory Consolidator", result.stdout)
 
+    def test_atk_sysadmin_command(self):
+        for alias in ("sysadmin", "sys"):
+            result = subprocess.run([str(ATK_BIN), alias, "--help"], capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0)
+            self.assertIn("Universal System Administration, Infrastructure Hardening & SRE Triage Tool", result.stdout)
+
     def test_atk_update_all_flow(self):
         custom_reg = self.target / "custom_installs.json"
         env = dict(os.environ, AGENT_TOOLKIT_REGISTRY=str(custom_reg))

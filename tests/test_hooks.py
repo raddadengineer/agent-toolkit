@@ -40,6 +40,56 @@ class TestHooksAndGuards(unittest.TestCase):
         self.assertEqual(guard_command.evaluate_command("git push --force-with-lease origin feature/login")["decision"], "allow")
         self.assertEqual(guard_command.evaluate_command("git status --short")["decision"], "allow")
 
+    def test_guard_blocks_sysadmin_lockouts(self):
+        blocked = [
+            "iptables -F",
+            "iptables -P INPUT DROP",
+            "ufw reset",
+            "nft flush ruleset",
+            "systemctl stop sshd",
+            "chmod -R 755 /etc",
+            "chown -R root:root /",
+            "reboot",
+            "crontab -r",
+            "usermod -G docker bob",
+            'echo "x" > /etc/sudoers',
+        ]
+        for cmd in blocked:
+            res = guard_command.evaluate_command(cmd)
+            self.assertEqual(res["decision"], "deny", f"Expected deny for: {cmd}")
+
+    def test_guard_allows_safe_sysadmin_commands(self):
+        allowed = [
+            "iptables -L -n",
+            "ufw status",
+            "systemctl status sshd",
+            "chmod -R 755 ./build",
+            "cat /var/run/reboot-required",
+            "crontab -l",
+            "usermod -aG docker bob",
+            "visudo -c",
+        ]
+        for cmd in allowed:
+            res = guard_command.evaluate_command(cmd)
+            self.assertEqual(res["decision"], "allow", f"Expected allow for: {cmd}")
+
+    def test_classify_command_tier(self):
+        t0 = guard_command.classify_command_tier("df -h && systemctl status nginx")
+        self.assertEqual(t0["tier"], 0)
+        self.assertEqual(t0["label"], "READ_ONLY")
+
+        t0_tool = guard_command.classify_command_tier("python3 scripts/sys_admin.py --health --json")
+        self.assertEqual(t0_tool["tier"], 0)
+
+        t1 = guard_command.classify_command_tier("chmod 600 ~/.ssh/config")
+        self.assertEqual(t1["tier"], 1)
+        self.assertEqual(t1["label"], "STANDARD_MUTATION")
+
+        t2 = guard_command.classify_command_tier("systemctl stop sshd")
+        self.assertEqual(t2["tier"], 2)
+        self.assertEqual(t2["label"], "HIGH_BLAST_RADIUS")
+        self.assertEqual(t2["decision"], "deny")
+
     def test_guard_stdin_stdout_protocol(self):
         payload = json.dumps({"toolCall": {"args": {"CommandLine": "rm -rf /"}}})
         proc = subprocess.run(

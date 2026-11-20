@@ -154,6 +154,16 @@ class TestPowerShellInstall(unittest.TestCase):
         self.assertIn("Semantic Versioning, Conventional Commits & Changelog Manager", result.stdout)
 
     @unittest.skipIf(PWSH_BIN is None, "PowerShell (pwsh or powershell) not installed")
+    def test_atk_ps1_sysadmin(self):
+        result = subprocess.run(
+            [PWSH_BIN, "-NoProfile", str(ATK_PS1), "sysadmin", "--help"],
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("Universal System Administration, Infrastructure Hardening & SRE Triage Tool", result.stdout)
+
+    @unittest.skipIf(PWSH_BIN is None, "PowerShell (pwsh or powershell) not installed")
     def test_install_ps1_help(self):
         result = subprocess.run(
             [PWSH_BIN, "-NoProfile", str(INSTALL_PS1), "-Help"],

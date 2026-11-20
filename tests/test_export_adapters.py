@@ -46,6 +46,7 @@ class TestExportAdapters(unittest.TestCase):
         self.assertTrue((commands_dir / "ci-workflow.md").exists())
         self.assertTrue((commands_dir / "dependency-audit.md").exists())
         self.assertTrue((commands_dir / "release-manager.md").exists())
+        self.assertTrue((commands_dir / "sys-admin.md").exists())
         self.assertTrue((self.target / "CLAUDE.md").exists())
 
     def test_export_cursor(self):
@@ -65,6 +66,7 @@ class TestExportAdapters(unittest.TestCase):
         self.assertTrue((rules_dir / "ci-workflow.mdc").exists())
         self.assertTrue((rules_dir / "dependency-auditor.mdc").exists())
         self.assertTrue((rules_dir / "release-manager.mdc").exists())
+        self.assertTrue((rules_dir / "sys-admin.mdc").exists())
         self.assertTrue((rules_dir / "session-workflows.mdc").exists())
         self.assertTrue((rules_dir / "context-optimizer.mdc").exists())
         self.assertTrue((self.target / ".cursorrules").exists())
@@ -88,6 +90,7 @@ class TestExportAdapters(unittest.TestCase):
         self.assertTrue((prompts_dir / "ci-workflow.prompt.md").exists())
         self.assertTrue((prompts_dir / "dependency-audit.prompt.md").exists())
         self.assertTrue((prompts_dir / "release-manager.prompt.md").exists())
+        self.assertTrue((prompts_dir / "sys-admin.prompt.md").exists())
 
     def test_export_roo_clinerules(self):
         results = export_adapters.export_tool_adapters(self.toolkit, self.target, "roo")
@@ -108,6 +111,7 @@ class TestExportAdapters(unittest.TestCase):
         self.assertIn("database-engineer", slugs)
         self.assertIn("devops-engineer", slugs)
         self.assertIn("research", slugs)
+        self.assertIn("sys-admin", slugs)
 
         self.assertTrue((self.target / ".clinerules").exists())
 
@@ -125,6 +129,8 @@ class TestExportAdapters(unittest.TestCase):
         self.assertTrue((agents_dir / "hooks.json").exists())
         self.assertTrue((agents_dir / "mcp_config.json").exists())
         self.assertTrue((agents_dir / "scripts").exists())
+        self.assertTrue((agents_dir / "skills" / "sys-admin").exists())
+        self.assertTrue((agents_dir / "agents" / "sys_admin").exists())
 
 
 if __name__ == "__main__":

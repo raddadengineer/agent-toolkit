@@ -35,7 +35,7 @@ atk start            # Prime session: branch check, context sync & memory recall
 
 | Guide | Description |
 | :--- | :--- |
-| **[🧰 Detailed Component Reference](docs/components.md)** | Deep dive into all 17 skills, 10 subagents, lifecycle hooks, and MCP servers. |
+| **[🧰 Detailed Component Reference](docs/components.md)** | Deep dive into all 18 skills, 11 subagents, lifecycle hooks, and MCP servers. |
 | **[⚡ CLI Commands & Terminal Recipes](docs/cli.md)** | Standalone terminal recipes for `atk`, token compression, memory, PR auditing, and debugging. |
 | **[🛠️ Installation & Setup Guide](docs/installation.md)** | Assistant-specific recipes, symlink vs copy modes, global PATH configuration, and multi-project updating. |
 
@@ -85,7 +85,7 @@ atk start            # Prime session: branch check, context sync & memory recall
 
 All skills are delivered via **progressive disclosure** (`.agents/skills/`), and specialized subagents operate in isolated contexts (`.agents/agents/`):
 
-### 🎯 Progressive Disclosure Skills (17 Skills)
+### 🎯 Progressive Disclosure Skills (18 Skills)
 
 | Skill | Primary Focus | CLI Shortcut | Reference |
 | :--- | :--- | :--- | :--- |
@@ -106,8 +106,9 @@ All skills are delivered via **progressive disclosure** (`.agents/skills/`), and
 | **[`dependency-auditor`](skills/dependency-auditor/SKILL.md)** | Multi-ecosystem wildcard & deprecation auditing | `atk dep` | [Docs](docs/components.md#13-dependency-auditor-skill) |
 | **[`release-manager`](skills/release-manager/SKILL.md)** | SemVer bump calculation & Conventional Commits changelogs | `atk release` | [Docs](docs/components.md#14-release-manager-skill) |
 | **[`doc-sync`](skills/doc-sync/SKILL.md)** | Documentation, schema parity & broken link sentinel | `atk drift` | [Docs](docs/components.md#17-doc-sync-skill) |
+| **[`sys-admin`](skills/sys-admin/SKILL.md)** | Host health triage, server/IaC hardening & SRE templates | `atk sysadmin` | [Docs](docs/components.md#18-sys-admin-skill) |
 
-### 🤖 Specialized Subagents (10 Subagents)
+### 🤖 Specialized Subagents (11 Subagents)
 
 | Subagent | Persona & Focus | Reference |
 | :--- | :--- | :--- |
@@ -121,6 +122,7 @@ All skills are delivered via **progressive disclosure** (`.agents/skills/`), and
 | **`database_engineer`** | Zero-downtime DDL, lock contention validation, and migration reversibility. | [Docs](docs/components.md#-specialized-subagents) |
 | **`devops_engineer`** | Hardened Dockerfiles, GitHub Actions synthesis, and SemVer release management. | [Docs](docs/components.md#-specialized-subagents) |
 | **`research`** | Isolated documentation reading, RFC exploration, and version-pinned snippet distillation. | [Docs](docs/components.md#-specialized-subagents) |
+| **`sys_admin`** | USE/RED triage, log condensation, safe rollback apply, host drift & IaC hardening. | [Docs](docs/components.md#-specialized-subagents) |
 
 ---
 
@@ -130,12 +132,12 @@ All skills are delivered via **progressive disclosure** (`.agents/skills/`), and
 
 | Tool | Export Path | Native Integration |
 | :--- | :--- | :--- |
-| **Claude Code** | `.claude/commands/`<br>`CLAUDE.md` | 17 interactive slash commands (`/session-starter`, `/code-review`, `/memory-manager`, `/dreamer`, etc.) |
-| **Cursor** | `.cursor/rules/*.mdc`<br>`.cursorrules` | 16 Cursor 2.0 MDC rules with glob trigger conditions and engineering standards |
-| **GitHub Copilot** | `.github/copilot-instructions.md`<br>`.github/prompts/` | Global repo instructions and 17 reusable `.prompt.md` slash templates |
-| **Roo Code / Cline** | `.roomodes`<br>`.clinerules` | 10 multi-agent JSON personas (`software-engineer`, `code-reviewer`, `devops-engineer`, `research`, etc.) |
+| **Claude Code** | `.claude/commands/`<br>`CLAUDE.md` | 18 interactive slash commands (`/session-starter`, `/code-review`, `/memory-manager`, `/sys-admin`, etc.) |
+| **Cursor** | `.cursor/rules/*.mdc`<br>`.cursorrules` | 18 Cursor 2.0 MDC rules with glob trigger conditions and engineering standards |
+| **GitHub Copilot** | `.github/copilot-instructions.md`<br>`.github/prompts/` | Global repo instructions and 18 reusable `.prompt.md` slash templates |
+| **Roo Code / Cline** | `.roomodes`<br>`.clinerules` | 11 multi-agent JSON personas (`software-engineer`, `code-reviewer`, `devops-engineer`, `sys-admin`, etc.) |
 | **Windsurf** | `.windsurfrules` | Cascade rules for surgical modifications and session continuity |
-| **Antigravity / Gemini CLI** | `.agents/skills/`<br>`.agents/agents/` | Native 17-skill progressive disclosure and 10 specialized subagents |
+| **Antigravity / Gemini CLI** | `.agents/skills/`<br>`.agents/agents/` | Native 18-skill progressive disclosure and 11 specialized subagents |
 
 > 📖 *For assistant-specific recipes and setup commands, see the [Installation Guide](docs/installation.md#assistant-specific-recipes).*
 
@@ -149,8 +151,8 @@ agent-toolkit/
 │   ├── atk                            # Unified global CLI launcher (Bash/Zsh)
 │   └── atk.ps1                        # Unified global CLI launcher (PowerShell)
 ├── install.sh / install.ps1           # Multi-tool installers and symlink managers
-├── skills/                            # 17 progressive disclosure skills
-├── agents/                            # 10 specialized subagent configurations
+├── skills/                            # 18 progressive disclosure skills
+├── agents/                            # 11 specialized subagent configurations
 ├── memory/                            # Persistent repository memory (patterns, rules, ADRs)
 ├── docs/                              # Detailed component, CLI, and installation guides
 │   ├── components.md                  # Comprehensive reference for skills & subagents
@@ -159,7 +161,7 @@ agent-toolkit/
 ├── scripts/                           # Central CLI engines, adapters & sentinels
 ├── hooks/                             # Antigravity PreToolUse and PostToolUse hooks
 ├── mcp/                               # Native MCP suite: Playwright, GitHub, SQLite
-└── tests/                             # 126 deterministic unit tests (Zero False Verification)
+└── tests/                             # 154 deterministic unit tests (Zero False Verification)
 ```
 
 ---

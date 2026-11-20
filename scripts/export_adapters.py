@@ -80,6 +80,9 @@ class AdapterExporter:
         self.research_standards = read_file_safe(
             toolkit_dir / "agents" / "research" / "rules" / "research-standards.md"
         )
+        self.sysadmin_standards = read_file_safe(
+            toolkit_dir / "agents" / "sys_admin" / "rules" / "sysadmin-standards.md"
+        )
 
     # --------------------------------------------------------------------------
     # 1. Claude Code
@@ -254,6 +257,16 @@ Execute the Universal Dreamer procedure:
 1. Synthesize recent session logs and transcripts: `python3 scripts/dream_consolidator.py --analyze`.
 2. Interactively review or auto-promote candidate patterns and anti-patterns: `python3 scripts/dream_consolidator.py --review` (or `--auto-promote`).
 3. Export consolidation proposal: `python3 scripts/dream_consolidator.py --output MEMORY_PROPOSAL.md`.
+""",
+            "sys-admin.md": """---
+description: Principal SRE triage (health/inodes/logs/TLS), host/IaC hardening audit, safe transactional apply & drift snapshots
+---
+
+Execute the Universal System Administrator & Principal SRE procedure:
+1. Run read-only USE/RED triage: `python3 scripts/sys_admin.py --health --ports --processes --json` and `python3 scripts/sys_admin.py --audit-host --json`.
+2. Condense incident logs & probe endpoints: `python3 scripts/sys_admin.py --triage-logs <path>` and `--check-endpoints <manifest.json>`.
+3. Audit server configs (SSH, systemd, Nginx, Caddy), K8s/Compose/sudoers/firewall, ops scripts, and Terraform/Ansible: `python3 scripts/sys_admin.py --audit . --native-lint --check`.
+4. Apply config updates transactionally with validation & auto-rollback (`--apply-safe SRC DEST --validate-cmd "..." --dry-run`) and track host drift (`--snapshot` / `--diff-snapshot`).
 """,
         }
 
@@ -483,6 +496,18 @@ alwaysApply: false
 - Ingest `SESSION_LOG.md` and conversation transcripts to extract recurring failure modes and winning patterns.
 - Require explicit developer review before promoting candidate memories into permanent repo memory.
 """,
+            "sys-admin.mdc": f"""---
+description: System Administration, Infrastructure Hardening & SRE Triage Standards
+globs: *.sh,*.ps1,*.service,*.timer,*.conf,sshd_config*,nginx*,Caddyfile*,*.caddy,*.tf,*.tfvars,*ansible*.yml,*playbook*.yml,crontab*,docker-compose*.yml,compose*.yml,*sudoers*,*nftables*.conf,*.nft,*ufw*.rules,*iptables*.rules
+alwaysApply: false
+---
+
+# System Administration & SRE Standards
+
+When diagnosing host/network incidents or modifying server configs, ops scripts, and infrastructure manifests:
+
+{self.sysadmin_standards.strip()}
+""",
         }
 
         for filename, content in rules.items():
@@ -642,6 +667,13 @@ description: Run out-of-band offline memory consolidation and pattern distillati
 
 Analyze session ledgers and execution transcripts to extract winning solution patterns, recurring error traps, and draft memory update proposals.
 """,
+            "sys-admin.prompt.md": """---
+name: sys-admin
+description: Principal SRE triage (health/logs/posture/TLS), server/IaC hardening audit, safe apply & drift snapshots
+---
+
+Act as a Principal Systems Administrator and SRE. Run read-only USE/RED triage (`--health --ports --processes`, `--triage-logs`, `--audit-host`), audit server/K8s/Compose/sudoers/firewall/IaC configs, apply changes safely with validation & rollback (`--apply-safe`), and track drift snapshots (`--snapshot` / `--diff-snapshot`).
+""",
         }
 
         for filename, content in prompts.items():
@@ -791,6 +823,20 @@ Analyze session ledgers and execution transcripts to extract winning solution pa
                     "customInstructions": (
                         "Read-only sandbox posture. Verify installed library versions before researching. "
                         "Distill external docs into exact signatures, minimal working snippets, and citations."
+                    ),
+                },
+                {
+                    "slug": "sys-admin",
+                    "name": "System Administrator & SRE",
+                    "roleDefinition": (
+                        "Principal systems administrator, infrastructure hardening specialist, and SRE responsible for "
+                        "USE/RED host triage, log condensation, live posture audits, transactional config apply with rollback, "
+                        "drift snapshots, server/K8s/IaC auditing, and operational runbooks."
+                    ),
+                    "groups": ["read", "edit", "command"],
+                    "customInstructions": (
+                        "Enforce Tier 0/1/2 blast-radius guardrails and read-only triage before mutation. Use --triage-logs, "
+                        "--audit-host, --apply-safe with validation/rollback, and --snapshot/--diff-snapshot; verify exit code 0."
                     ),
                 },
             ]

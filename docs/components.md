@@ -1,6 +1,6 @@
 # 🧰 Agent Toolkit — Detailed Component Reference
 
-This document provides complete architectural specifications, capabilities, and workflows for all 17 progressive disclosure skills, 10 specialized subagents, lifecycle hooks, and Model Context Protocol (MCP) servers in `agent-toolkit`.
+This document provides complete architectural specifications, capabilities, and workflows for all 18 progressive disclosure skills, 11 specialized subagents, lifecycle hooks, and Model Context Protocol (MCP) servers in `agent-toolkit`.
 
 ---
 
@@ -23,6 +23,7 @@ This document provides complete architectural specifications, capabilities, and 
   - [15. memory-manager](#15-memory-manager-skill)
   - [16. dreamer](#16-dreamer-skill)
   - [17. doc-sync](#17-doc-sync-skill)
+  - [18. sys-admin](#18-sys-admin-skill)
 - [Specialized Subagents](#-specialized-subagents)
 - [Lifecycle Hooks & Auto-Formatters](#-lifecycle-hooks--auto-formatters)
 - [Native MCP Suite](#-native-mcp-suite)
@@ -151,6 +152,14 @@ Documentation, schema, and filesystem drift sentinel:
 - **Catalog Verification**: Guarantees all skills and subagents on disk are actively cataloged.
 - **Instruction**: [`skills/doc-sync/SKILL.md`](../skills/doc-sync/SKILL.md)
 
+### 18. `sys-admin` (Skill)
+Cross-platform system administration, infrastructure security hardening, and Principal SRE incident triage:
+- **Deep Host & Endpoint Triage (`--health`, `--triage-logs`, `--audit-host`)**: Collects CPU load, RAM, disk, POSIX **inodes**, failed services across Linux (`systemd`), macOS (`launchd`), and Windows (`scm`), listening sockets, top processes/zombies/FDs (`--processes`), condensed log alerts/clusters, SSH/shadow/umask posture, batch endpoint manifests (`--check-endpoints`), and read-only SSH triage (`--ssh`).
+- **Transactional Config Apply & Drift Snapshots (`--apply-safe`, `--snapshot`, `--diff-snapshot`)**: Previews unified diffs (`--dry-run`), records SHA-256 receipts, runs pre-reload syntax validators with automatic rollback on failure, and diffs host posture snapshots to isolate configuration drift.
+- **Hybrid Hardening Auditor (`--audit`, `--native-lint`)**: Scans `sshd_config`, `systemd`, Nginx, **Caddyfile**, **Kubernetes**, **Docker Compose**, **sudoers**, **firewall** rules, Bash/PowerShell ops scripts, cron, `sysctl`, Terraform, and Ansible playbooks, with inline `# sysadmin-ignore:` suppressions, `--baseline` diffing, and opportunistic native validator delegation (`shellcheck`/`bash -n`, `systemd-analyze`, `caddy`, `ansible-lint`, `tflint`).
+- **Template Scaffolder (`--scaffold`)**: Generates hardened `systemd`, `nginx`, `backup` (`.sh`), `backup-ps1` (`.ps1`), `cron`, `sshd`, operational `runbook`, and blameless `postmortem` templates.
+- **Instruction**: [`skills/sys-admin/SKILL.md`](../skills/sys-admin/SKILL.md)
+
 ---
 
 ## 🤖 Specialized Subagents
@@ -169,6 +178,7 @@ Subagents are isolated system personas defined in `.agents/agents/` that can be 
 | **`database_engineer`** | Database Specialist | Reversible migrations, table lock auditing, zero-downtime DDL safety, and index optimization. |
 | **`devops_engineer`** | DevOps Specialist | Multi-stage Dockerfiles, GitHub Actions pipelines, dependency security, and release notes. |
 | **`research`** | Research Specialist | Isolated API documentation reading, RFC exploration, and version-pinned snippet extraction. |
+| **`sys_admin`** | SysAdmin & Principal SRE | USE/RED triage, log condensation, live posture & IaC/K8s/Caddy audits, safe apply w/ rollback & drift snapshots. |
 
 ---
 
